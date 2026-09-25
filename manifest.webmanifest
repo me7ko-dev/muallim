@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Муаллим – учител по Коран и намаз",
+  "short_name": "Муаллим",
+  "description": "Арабската азбука, теджвид, сурите и дуите за намаз, езан, абдест и как се кланя намаз – на български, стъпка по стъпка.",
+  "lang": "bg",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07130f",
+  "theme_color": "#0c2a23",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "categories": ["education", "books", "lifestyle"]
+}

@@ -1,0 +1,92 @@
+{
+  "modules": [
+    {
+      "id": "elifba", "title": "Арабската азбука", "sub": "Елиф-Ба: 28 букви, форми и звуци", "icon": "abc",
+      "lessons": [
+        { "id": "l1", "type": "letters", "title": "Букви 1–7: от Елиф до Хъ", "letters": ["alif", "ba", "ta", "tha", "jim", "hha", "kha"] },
+        { "id": "l2", "type": "letters", "title": "Букви 8–14: от Дал до Сад", "letters": ["dal", "dhal", "ra", "zay", "sin", "shin", "sad"] },
+        { "id": "l3", "type": "letters", "title": "Букви 15–21: от Дад до Каф", "letters": ["dad", "tta", "zza", "ayn", "ghayn", "fa", "qaf"] },
+        { "id": "l4", "type": "letters", "title": "Букви 22–28: от Кяф до Йе", "letters": ["kaf", "lam", "mim", "nun", "ha", "waw", "ya"] },
+        { "id": "extra", "type": "extra", "title": "Допълнителни знаци: хемзе, те марбута, лям-елиф" },
+        { "id": "forms", "type": "forms", "title": "Как буквите се свързват в дума" },
+        { "id": "quiz", "type": "quiz", "kind": "letters", "title": "Изпит: познавам ли буквите?" }
+      ]
+    },
+    {
+      "id": "harake", "title": "Гласни и знаци", "sub": "Харекета, тенвин, сукун, шедде, удължаване", "icon": "vowel",
+      "lessons": [
+        { "id": "fetha", "type": "haraka", "title": "Фетха – звук „а/е“", "mark": "َ", "vowel": "а", "desc": "Малка чертичка НАД буквата. Дава кратко „а“ (при дебелите букви) или „е“ (при тънките). Пример: بَ = „бе“, صَ = „са“." },
+        { "id": "kesra", "type": "haraka", "title": "Кесра – звук „и“", "mark": "ِ", "vowel": "и", "desc": "Малка чертичка ПОД буквата. Дава кратко „и“. Пример: بِ = „би“." },
+        { "id": "damma", "type": "haraka", "title": "Дамма – звук „у“", "mark": "ُ", "vowel": "у", "desc": "Малка „вав“ над буквата. Дава кратко „у“. Пример: بُ = „бу“." },
+        { "id": "tenvin", "type": "tenvin", "title": "Тенвин – „ан / ин / ун“" },
+        { "id": "sukun", "type": "sukun", "title": "Сукун и шедде" },
+        { "id": "medd", "type": "medd", "title": "Дълги гласни (медд)" },
+        { "id": "quiz", "type": "quiz", "kind": "syllables", "title": "Изпит: чета ли срички?" }
+      ]
+    },
+    {
+      "id": "tecvid", "title": "Теджвид", "sub": "Правилата за красиво и правилно четене", "icon": "wave",
+      "lessons": [
+        { "id": "intro", "type": "tecvid", "title": "Основни правила на теджвида" }
+      ]
+    },
+    {
+      "id": "sureler", "title": "Сури за намаз", "sub": "Слушай, повтаряй, заучи", "icon": "book",
+      "lessons": [
+        { "id": "s1", "type": "surah", "s": 1, "title": "Фатиха – Откриващата" },
+        { "id": "s112", "type": "surah", "s": 112, "title": "Ихлас – Пречистването" },
+        { "id": "s113", "type": "surah", "s": 113, "title": "Фелек – Разсъмването" },
+        { "id": "s114", "type": "surah", "s": 114, "title": "Нас – Хората" },
+        { "id": "s108", "type": "surah", "s": 108, "title": "Кевсер – Изобилието" },
+        { "id": "s103", "type": "surah", "s": 103, "title": "Аср – Следобедът" },
+        { "id": "s110", "type": "surah", "s": 110, "title": "Наср – Подкрепата" },
+        { "id": "s109", "type": "surah", "s": 109, "title": "Кяфирун – Неверниците" },
+        { "id": "s111", "type": "surah", "s": 111, "title": "Тебет (Месед) – Сплетените влакна" },
+        { "id": "s107", "type": "surah", "s": 107, "title": "Маун – Услугите" },
+        { "id": "s106", "type": "surah", "s": 106, "title": "Курайш" },
+        { "id": "s105", "type": "surah", "s": 105, "title": "Фил – Слонът" },
+        { "id": "ak", "type": "surah", "s": 2, "title": "Айетел Курси (Бакара, 255)" }
+      ]
+    },
+    {
+      "id": "dualar", "title": "Дуи в намаза", "sub": "Субханеке, Еттехиййату, Салли-Барик, Кунут…", "icon": "hands",
+      "lessons": [
+        { "id": "d1", "type": "dua", "title": "Текбир, Субханеке, Еузу-Бесмеле", "duas": ["tekbir", "subhaneke", "euzu"] },
+        { "id": "d2", "type": "dua", "title": "Тесбихи в рукю и суджуд", "duas": ["ruku", "kavme", "secde"] },
+        { "id": "d3", "type": "dua", "title": "Еттехиййату", "duas": ["ettehiyyatu"] },
+        { "id": "d4", "type": "dua", "title": "Аллахумме салли и барик", "duas": ["salli", "barik"] },
+        { "id": "d5", "type": "dua", "title": "Раббена дуите и селям", "duas": ["rabbena1", "rabbena2", "selam"] },
+        { "id": "d6", "type": "dua", "title": "Кунут дуите (за витр)", "duas": ["kunut1", "kunut2"] },
+        { "id": "d7", "type": "dua", "title": "Тесбихат след намаз", "duas": ["tesbihat"] }
+      ]
+    },
+    {
+      "id": "ezan", "title": "Езан и икамет", "sub": "Призивът за намаз – текст, значение, отговор", "icon": "minaret",
+      "lessons": [
+        { "id": "ezan", "type": "ezan", "title": "Езанът ред по ред" },
+        { "id": "ikamet", "type": "ikamet", "title": "Икамет и правила" },
+        { "id": "quiz", "type": "quiz", "kind": "ezan", "title": "Изпит: редът на езана" }
+      ]
+    },
+    {
+      "id": "abdest", "title": "Абдест", "sub": "Тахарет, гусюл, теяммум", "icon": "drop",
+      "lessons": [
+        { "id": "steps", "type": "abdest", "title": "Абдестът стъпка по стъпка" },
+        { "id": "rules", "type": "abdest-rules", "title": "Фарз, сюннет и какво разваля абдеста" },
+        { "id": "gusul", "type": "gusul", "title": "Гусюл и теяммум" },
+        { "id": "quiz", "type": "quiz", "kind": "abdest", "title": "Изпит: редът на абдеста" }
+      ]
+    },
+    {
+      "id": "namaz", "title": "Намаз", "sub": "Петте намаза, движенията, какво се чете", "icon": "pray",
+      "lessons": [
+        { "id": "prayers", "type": "prayers", "title": "Петте намаза и рекятите им" },
+        { "id": "sartlar", "type": "sartlar", "title": "Условия и рукюни на намаза" },
+        { "id": "steps2", "type": "steps2", "title": "Как се кланя – 2 рекята стъпка по стъпка" },
+        { "id": "steps34", "type": "steps34", "title": "3 и 4 рекята, витр, разлики за жените" },
+        { "id": "sehiv", "type": "sehiv", "title": "Грешки, седжде-и сехв, каза" },
+        { "id": "quiz", "type": "quiz", "kind": "namaz", "title": "Изпит: намаз" }
+      ]
+    }
+  ]
+}
