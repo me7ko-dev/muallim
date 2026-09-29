@@ -17,15 +17,25 @@ const measure = (f, pre = '') => {
   const mean = +(/mean_volume: (-?[\d.]+)/.exec(r.stderr) || [])[1], max = +(/max_volume: (-?[\d.]+)/.exec(r.stderr) || [])[1];
   return { mean, max };
 };
-// Тишина в началото/края се реже; силата се довежда до средно -20 dB (без пикът да минава -1 dB)
-const TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.05,areverse,silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.12,areverse';
+// Звучащата част: от първия до последния момент над (пика − 45 dB), с малко въздух преди и след
+function active(f, from, to) {
+  const args = ['-v', 'quiet', '-nostdin']; if (from != null) args.push('-ss', String(from)); if (to != null) args.push('-to', String(to));
+  const pcm = spawnSync(FF, [...args, '-i', f, '-ac', '1', '-ar', '16000', '-f', 's16le', '-'], { maxBuffer: 1 << 28 }).stdout;
+  const x = new Int16Array(pcm.buffer, pcm.byteOffset, pcm.length >> 1), H = 160, db = [];
+  for (let i = 0; i + H <= x.length; i += H) { let e = 0; for (let j = i; j < i + H; j++) e += (x[j] / 32768) ** 2; db.push(10 * Math.log10(e / H + 1e-12)); }
+  const pk = Math.max(...db), on = db.map((v, i) => v > pk - 45 ? i : -1).filter(i => i >= 0);
+  const base = from || 0, len = x.length / 16000;
+  return { from: base + Math.max(0, on[0] * 0.01 - 0.06), to: base + Math.min(len, (on.at(-1) + 1) * 0.01 + 0.15) };
+}
+// Силата се довежда до средно -20 dB (без пикът да минава -1 dB)
 function make(out, inputs, { target = -20, bitrate = '64k', trim = true } = {}) {
   // inputs: [{ f, from, to }] – свързват се един след друг
   const args = [], parts = [];
   inputs.forEach((x, i) => {
-    if (x.from != null) args.push('-ss', String(x.from)); if (x.to != null) args.push('-to', String(x.to));
+    const r = trim ? active(x.f, x.from, x.to) : x;
+    if (r.from != null) args.push('-ss', r.from.toFixed(3)); if (r.to != null) args.push('-to', r.to.toFixed(3));
     args.push('-i', x.f);
-    parts.push(`[${i}:a]aformat=sample_rates=44100:channel_layouts=mono${trim ? ',' + TRIM : ''}[p${i}]`);
+    parts.push(`[${i}:a]aformat=sample_rates=44100:channel_layouts=mono[p${i}]`);
   });
   const gap = inputs.length > 1 ? `;${inputs.map((_, i) => `[p${i}]`).join('')}concat=n=${inputs.length}:v=0:a=1[c]` : '';
   const pre = parts.join(';') + gap;
@@ -33,7 +43,7 @@ function make(out, inputs, { target = -20, bitrate = '64k', trim = true } = {}) 
   ff(...args, '-filter_complex', pre, '-map', inputs.length > 1 ? '[c]' : '[p0]', tmp);
   const { mean, max } = measure(tmp);
   const gain = Math.min(target - mean, -1 - max);
-  ff('-i', tmp, '-af', `volume=${gain.toFixed(2)}dB,afade=t=in:d=0.01`, '-ac', '1', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', bitrate, '-map_metadata', '-1', join(OUT, out));
+  ff('-i', tmp, '-af', `volume=${gain.toFixed(2)}dB,afade=t=in:d=0.01,areverse,afade=t=in:d=0.03,areverse`, '-ac', '1', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', bitrate, '-map_metadata', '-1', join(OUT, out));
   rmSync(tmp);
   const d = +spawnSync(FF, ['-i', join(OUT, out)], { encoding: 'utf8' }).stderr.match(/Duration: (\d+):(\d+):([\d.]+)/).slice(1).reduce((a, v) => a * 60 + +v, 0);
   console.log(out.padEnd(28), d.toFixed(2) + 's', `gain ${gain.toFixed(1)} dB`);
