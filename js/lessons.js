@@ -13,17 +13,35 @@ const letterById = id => DATA.letters.letters.find(l => l.id === id);
 const FORM_NAMES = ['сама', 'в началото', 'в средата', 'в края'];
 const ar = t => `<span class="ar">${t}</span>`;
 const vowelOf = (id, v) => v === 'fetha' ? (THICK.has(id) ? 'а' : 'е') : v === 'kesra' ? 'и' : 'у';
+const sylTr = (id, v) => id === 'alif' ? vowelOf('alif', v) : CYR[id] + vowelOf(id, v);
+const VOWELS = [['fetha', 'َ'], ['kesra', 'ِ'], ['damma', 'ُ']];
+
+// ---------- аудио ----------
+// Букви и срички: audio/letters/<буква>.mp3 (името) и <буква>-<fetha|kesra|damma>.mp3 (сричката)
+export const letterAudio = (id, v) => `audio/letters/${id}${v ? '-' + v : ''}.mp3`;
+// Дуа → опашка за плейъра; "q:14:41" е айет от EveryAyah с избрания рецитатор
+export function duaItems(d) {
+  if (!d || !d.audio) return [];
+  const r = store.get('reciter');
+  const list = d.audio.map(u => { const q = /^q:(\d+):(\d+)$/.exec(u); return { url: q ? ayahUrl(r, +q[1], +q[2]) : u, key: d.id }; });
+  return Array.from({ length: d.rep || 1 }, () => list).flat();
+}
+export const surahItems = s => DATA.surahs[s].ayahs.map(a => ({ url: ayahUrl(store.get('reciter'), s, a.a), key: a.a }));
+const playBtn = (url, label) => `<button class="ib pb" data-snd="${url}" aria-label="${esc(label)}">${icon('play')}</button>`;
 
 // ---------- рендери ----------
 const R = {
   letters(l) {
-    return `<p class="p muted">Разгледайте всяка буква: как изглежда сама и в думата, откъде излиза звукът, пример. Повтаряйте на глас и се запишете накрая.</p>
+    const all = l.letters.map(id => letterAudio(id)).join(' ');
+    return `<p class="p muted">Разгледайте всяка буква: как изглежда сама и в думата, откъде излиза звукът, пример. Докоснете ▶, за да чуете името ѝ, и сричките отдолу – как звучи с фетха, кесра и дамма. Повтаряйте на глас и се запишете накрая.</p>
+    <div class="ctrls"><button class="btn" data-sndall="${all}" data-gap="1200">${icon('play')} Чуй всички букви</button><span class="muted" style="font-size:13px">с пауза, за да повтаряте</span></div>
     <div class="letters">${l.letters.map(id => letterById(id)).map(x => `<div class="card letter">
       <div class="big" lang="ar">${x.ar}</div>
-      <div><h3>${esc(x.name)} <span class="badge">${esc(x.group)}</span></h3><div class="snd">Звук: ${esc(x.sound)}</div><p>${esc(x.makhraj)}</p>
+      <div><h3>${esc(x.name)} ${playBtn(letterAudio(x.id), 'Чуй ' + x.name)} <span class="badge">${esc(x.group)}</span></h3><div class="snd">Звук: ${esc(x.sound)}</div><p>${esc(x.makhraj)}</p>
+        <div class="syl mini">${VOWELS.map(([v, m]) => `<button data-snd="${letterAudio(x.id, v)}"><span class="ar" lang="ar">${x.id === 'alif' ? (v === 'kesra' ? 'إِ' : 'أ' + m) : x.ar + m}</span><small>${sylTr(x.id, v)}</small></button>`).join('')}</div>
         <div class="forms">${x.forms.map((f, i) => `<span lang="ar">${f}<small>${FORM_NAMES[i]}</small></span>`).join('')}</div>
         ${x.join ? '' : '<p class="muted" style="font-size:13px">Тази буква не се свързва със следващата (само с предишната).</p>'}
-        <div class="ex">${ar(x.example.ar)}<div><b>${esc(x.example.tr)}</b><br><small>${esc(x.example.bg)}</small></div></div>
+        <div class="ex">${ar(x.example.ar)}<div><b>${esc(x.example.tr)}</b><br><small>${esc(x.example.bg)}</small></div>${x.example.audio ? playBtn(x.example.audio, 'Чуй ' + x.example.tr) : ''}</div>
       </div></div>`).join('')}</div>${recorder('Прочетете имената и звуковете на буквите на глас, запишете се и се чуйте.')}`;
   },
   extra() {
@@ -38,10 +56,12 @@ const R = {
   },
   haraka(l) {
     const v = l.id;
-    return `<div class="card demo"><div class="ar" id="demoAr">ب${l.mark}</div><b id="demoTr">б${vowelOf('ba', v)}</b></div>
+    const L = DATA.letters.letters;
+    return `<button class="card demo" id="demo" data-snd="${letterAudio('ba', v)}"><div class="ar" id="demoAr">ب${l.mark}</div><b id="demoTr">б${vowelOf('ba', v)}</b><small class="muted">докоснете, за да чуете</small></button>
     <p class="p">${esc(l.desc)}</p>
-    <div class="sub">Всички букви с ${esc(l.title.split(' –')[0].toLowerCase())} – докоснете, за да ги видите големи</div>
-    <div class="syl">${DATA.letters.letters.map(x => `<button data-syl="${x.ar}${l.mark}" data-tr="${x.id === 'alif' ? vowelOf('alif', v) : CYR[x.id] + vowelOf(x.id, v)}"><span class="ar" lang="ar">${x.id === 'alif' ? 'أ' : x.ar}${l.mark}</span><small>${x.id === 'alif' ? vowelOf('alif', v) : CYR[x.id] + vowelOf(x.id, v)}</small></button>`).join('')}</div>
+    <div class="sub">Всички букви с ${esc(l.title.split(' –')[0].toLowerCase())} – докоснете, за да ги чуете и видите големи</div>
+    <div class="ctrls"><button class="btn" data-sndall="${L.map(x => letterAudio(x.id, v)).join(' ')}" data-gap="1000">${icon('play')} Чуй всички подред</button><span class="muted" style="font-size:13px">с пауза, за да повтаряте</span></div>
+    <div class="syl">${L.map(x => `<button data-syl="${x.id === 'alif' && v === 'kesra' ? 'إِ' : (x.id === 'alif' ? 'أ' : x.ar) + l.mark}" data-tr="${sylTr(x.id, v)}" data-snd="${letterAudio(x.id, v)}"><span class="ar" lang="ar">${x.id === 'alif' && v === 'kesra' ? 'إِ' : (x.id === 'alif' ? 'أ' : x.ar) + l.mark}</span><small>${sylTr(x.id, v)}</small></button>`).join('')}</div>
     ${recorder('Прочетете всички срички на глас подред, запишете се и проверете дали различавате „а/е“, „и“ и „у“.')}`;
   },
   tenvin() {
@@ -100,12 +120,15 @@ const R = {
   },
   dua(l) {
     const cls = `${store.get('showTr') ? '' : 'hide-tr'} ${store.get('showBg') ? '' : 'hide-bg'}`;
-    return `<div class="${cls}">${l.duas.map(id => DATA.dualar.find(d => d.id === id)).map(d => `<div class="card dua"><h3>${esc(d.name)}</h3><p class="when">${esc(d.when)}</p>${d.ar ? `<p class="ar-text" lang="ar">${d.ar}</p>` : ''}<p class="tr-text">${esc(d.tr)}</p><p class="bg-text">${esc(d.bg)}</p>${d.note ? `<div class="note">${esc(d.note)}</div>` : ''}</div>`).join('')}</div>
+    return `<div class="${cls}">${l.duas.map(id => DATA.dualar.find(d => d.id === id)).map(d => `<div class="card dua"><div class="dua-top"><h3>${esc(d.name)}</h3>${d.audio ? `<button class="ib pb" data-dua="${d.id}" aria-label="Чуй ${esc(d.name)}">${icon('play')}</button>` : ''}</div><p class="when">${esc(d.when)}</p>${d.ar ? `<p class="ar-text" lang="ar">${d.ar}</p>` : ''}<p class="tr-text">${esc(d.tr)}</p><p class="bg-text">${esc(d.bg)}</p>${d.note ? `<div class="note">${esc(d.note)}</div>` : ''}${d.audioNote ? `<p class="muted au-note">${esc(d.audioNote)}</p>` : ''}</div>`).join('')}</div>
     ${recorder('Прочетете дуата бавно на глас по българските букви, запишете се и се чуйте. Учете по един ред на ден.')}`;
   },
   ezan() {
     const E = DATA.ezan;
-    return `<p class="p">${esc(E.intro)}</p><div class="card">${E.lines.map(x => `<div class="ezan-line ${x.only ? 'sabah' : ''}"><span class="x">×${x.times}</span><p class="ar-text" lang="ar">${x.ar}</p><p class="tr-text">${esc(x.tr)}</p><p class="bg-text">${esc(x.bg)}${x.only ? ' <span class="badge">само сабах</span>' : ''}</p><div class="reply"><b>Отговор:</b> ${esc(x.reply)}</div></div>`).join('')}</div>
+    return `<p class="p">${esc(E.intro)}</p>
+    <div class="ctrls"><button class="btn" data-ezan="all">${icon('play')} Чуй целия езан</button><button class="chip" id="ezGap" aria-pressed="false">Пауза за отговор</button></div>
+    <div class="card">${E.lines.map((x, i) => `<div class="ezan-line ${x.only ? 'sabah' : ''}" data-line="${i}"><div class="x-col"><span class="x">×${x.times}</span>${x.seg ? `<button class="ib pb" data-ezan="${i}" aria-label="Чуй реда">${icon('play')}</button>` : ''}</div><p class="ar-text" lang="ar">${x.ar}</p><p class="tr-text">${esc(x.tr)}</p><p class="bg-text">${esc(x.bg)}${x.only ? ' <span class="badge">само сабах</span>' : ''}</p><div class="reply"><b>Отговор:</b> ${esc(x.reply)}</div></div>`).join('')}</div>
+    <p class="muted au-note">${esc(E.audioNote || '')}</p>
     <h3 class="h">${esc(E.dua.name)}</h3><div class="card dua"><p class="ar-text" lang="ar">${E.dua.ar}</p><p class="tr-text">${esc(E.dua.tr)}</p><p class="bg-text">${esc(E.dua.bg)}</p></div>
     ${recorder('Кажете езана ред по ред, бавно, запишете се и се чуйте.')}`;
   },
@@ -176,20 +199,83 @@ export function bindLesson(l, m, view) {
   if (l.type === 'quiz') { bindQuiz(l, m); return; }
   // срички – показват се големи в демото
   view.querySelectorAll('[data-syl]').forEach(b => on(b, 'click', () => {
-    const d = $('#demoAr'); if (d) { d.textContent = b.dataset.syl; $('#demoTr').textContent = b.dataset.tr; window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    else toast(b.dataset.tr);
+    const d = $('#demoAr'); if (d) { d.textContent = b.dataset.syl; $('#demoTr').textContent = b.dataset.tr; $('#demo').dataset.snd = b.dataset.snd; }
+    else if (!b.dataset.snd) toast(b.dataset.tr);
   }));
-  // сура – аудио
+  bindSounds(view);
   if (l.type === 'surah') bindSurah(l, view);
+  if (l.type === 'dua') bindDuas(view);
+  if (l.type === 'ezan') bindEzan(view);
   if (l.type === 'steps2') bindStepper(view);
   // запис
   const rec = view.querySelector('[data-rec]');
   if (rec) bindRecorder(rec);
 }
 
+// Общо: бутони data-snd (един звук) и data-sndall (няколко подред); бутонът, който звучи, светва
+function bindSounds(view) {
+  const mark = () => {
+    const cur = player.playing && player.current;
+    view.querySelectorAll('[data-snd]').forEach(b => {
+      const on = !!cur && b.dataset.snd === cur.url;
+      b.classList.toggle('playing', on);
+      if (b.classList.contains('pb')) b.innerHTML = icon(on ? 'pause' : 'play');
+    });
+    view.querySelectorAll('[data-sndall]').forEach(b => { const on = player.playing && player.queue === b._q; b.innerHTML = `${icon(on ? 'pause' : 'play')} ${on ? 'Пауза' : b._label}`; });
+  };
+  view.querySelectorAll('[data-snd]').forEach(b => on(b, 'click', () => {
+    const u = b.dataset.snd, cur = player.current;
+    if (cur && cur.url === u && player.queue.length === 1 && player.playing) player.toggle(); else player.playOne({ url: u, key: u });
+  }));
+  view.querySelectorAll('[data-sndall]').forEach(b => {
+    b._label = b.textContent.trim();
+    on(b, 'click', () => {
+      if (player.queue === b._q && player.current) { player.toggle(); return; }
+      b._q = b.dataset.sndall.split(' ').map(u => ({ url: u, key: u }));
+      player.playList(b._q, { gap: +b.dataset.gap || 0 });
+    });
+  });
+  on(player, 'state', mark);
+}
+
+function bindDuas(view) {
+  const mark = () => view.querySelectorAll('[data-dua]').forEach(b => { const on = player.playing && player.current && player.current.key === b.dataset.dua; b.innerHTML = icon(on ? 'pause' : 'play'); b.closest('.dua').classList.toggle('cur', on); });
+  view.querySelectorAll('[data-dua]').forEach(b => on(b, 'click', () => {
+    const cur = player.current;
+    if (cur && cur.key === b.dataset.dua) player.toggle(); else player.playList(duaItems(DATA.dualar.find(d => d.id === b.dataset.dua)), { gap: 500 });
+  }));
+  on(player, 'state', mark);
+}
+
+// Езан: един запис, всеки ред е една или две фрази (seg: [[от, до], ...] в секунди)
+function bindEzan(view) {
+  const E = DATA.ezan; let gap = 0;
+  const phrases = i => E.lines[i].seg.map(([a, b]) => ({ url: E.audio, start: a, end: b, key: i }));
+  const all = () => {
+    const seen = new Set(), out = [];
+    E.lines.forEach((x, i) => { if (x.seg && !seen.has(String(x.seg))) { seen.add(String(x.seg)); out.push(...phrases(i)); } });
+    return out;
+  };
+  const mark = () => {
+    const cur = player.playing && player.current, whole = player.queue.length > 2;
+    const same = cur ? E.lines.map((x, i) => x.seg && String(x.seg) === String(E.lines[cur.key].seg) ? i : -1).filter(i => i >= 0) : [];
+    view.querySelectorAll('.ezan-line').forEach(el => el.classList.toggle('cur', same.includes(+el.dataset.line)));
+    view.querySelectorAll('[data-ezan]').forEach(b => {
+      if (b.dataset.ezan === 'all') b.innerHTML = `${icon(cur && whole ? 'pause' : 'play')} ${cur && whole ? 'Пауза' : 'Чуй целия езан'}`;
+      else b.innerHTML = icon(cur && !whole && same.includes(+b.dataset.ezan) ? 'pause' : 'play');
+    });
+  };
+  view.querySelectorAll('[data-ezan]').forEach(b => on(b, 'click', () => {
+    const k = b.dataset.ezan, cur = player.current, whole = player.queue.length > 2;
+    if (k === 'all') { if (cur && whole) player.toggle(); else player.playList(all(), { gap }); return; }
+    if (cur && !whole && cur.key === +k) player.toggle(); else player.playList(phrases(+k), { gap });
+  }));
+  on($('#ezGap'), 'click', e => { gap = gap ? 0 : 4000; e.currentTarget.classList.toggle('on', !!gap); e.currentTarget.setAttribute('aria-pressed', !!gap); toast(gap ? 'След всяка фраза – 4 секунди да отговорите.' : 'Без пауза.'); });
+  on(player, 'state', mark);
+}
+
 function bindSurah(l, view) {
-  const S = DATA.surahs[l.s]; const r = store.get('reciter');
-  const items = S.ayahs.map(a => ({ url: ayahUrl(r, l.s, a.a), key: a.a }));
+  const items = surahItems(l.s);
   let each = 3;
   const setBtn = (playing) => { const b = view.querySelector('[data-playall]'); if (b) b.innerHTML = `${icon(playing ? 'pause' : 'play')} ${playing ? 'Пауза' : 'Пусни цялата'}`; };
   const onState = () => {
@@ -199,10 +285,9 @@ function bindSurah(l, view) {
     setBtn(player.playing);
   };
   on(player, 'state', onState); on(player, 'end', onState);
-  on(player, 'fail', () => toast('Аудиото не се зареди – проверете интернет връзката.'));
   view.querySelectorAll('[data-play]').forEach(b => on(b, 'click', () => {
     const a = +b.dataset.play; const cur = player.current;
-    if (cur && cur.key === a && player.queue.length === 1) player.toggle(); else player.playOne(items[a - 1]);
+    if (cur && cur.key === a && player.queue.length === 1) player.toggle(); else player.playOne(items.find(x => x.key === a));
   }));
   on(view.querySelector('[data-playall]'), 'click', () => { if (player.queue.length === items.length && player.current) player.toggle(); else player.playList(items); });
   on(view.querySelector('[data-learn]'), 'click', () => { player.playList(items, { each, loops: 2 }); toast(`Заучаване: всеки айет ×${each}, цялата ×2`); });
@@ -217,15 +302,19 @@ function bindStepper(view) {
     const d = DATA.dualar.find(x => x.id === id); const les = DATA.course.modules.find(m => m.id === 'dualar').lessons.find(L => L.duas.includes(id));
     return `<a class="chip" href="${lessonHref('dualar', les ? les.id : 'd1')}">${esc(d ? d.name : id)}</a>`;
   };
+  // Какво се чете в стъпката → аудио: дуите и сурите (цялата сура от EveryAyah)
+  const readItems = ids => ids.flatMap(id => id.startsWith('s:') ? surahItems(+id.slice(2)) : duaItems(DATA.dualar.find(x => x.id === id)));
+  on(player, 'state', () => { const pb = $('#stPlay'); if (pb) pb.innerHTML = `${icon(player.playing ? 'pause' : 'play')} ${player.playing ? 'Пауза' : 'Чуй'}`; });
   const show = () => {
     const s = steps[i];
     box.innerHTML = `<div class="fig">${figureSvg(s.pos, 150)}</div><div class="pos">${POS_NAME[s.pos]} · стъпка ${i + 1} от ${steps.length}</div><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p>
-      <div class="reads">${s.read.map(readLink).join('')}</div>
+      <div class="reads">${s.read.map(readLink).join('')}${readItems(s.read).length ? `<button class="chip" id="stPlay">${icon('play')} Чуй</button>` : ''}</div>
       <div class="nav"><button class="btn ghost" id="stPrev" ${i === 0 ? 'disabled' : ''}>${icon('chev-l')} Назад</button><div class="dots">${steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn" id="stNext" ${i === steps.length - 1 ? 'disabled' : ''}>Напред ${icon('chev-r')}</button></div>`;
-    $('#stPrev').onclick = () => { i--; show(); }; $('#stNext').onclick = () => { i++; show(); };
+    $('#stPrev').onclick = () => { i--; player.stop(); show(); }; $('#stNext').onclick = () => { i++; player.stop(); show(); };
+    const pb = $('#stPlay'); if (pb) pb.onclick = () => { if (player.current) player.toggle(); else player.playList(readItems(s.read), { gap: 400 }); };
   };
   show();
-  on(document, 'keydown', e => { if (e.key === 'ArrowRight' && i < steps.length - 1) { i++; show(); } if (e.key === 'ArrowLeft' && i > 0) { i--; show(); } });
+  on(document, 'keydown', e => { if (e.key === 'ArrowRight' && i < steps.length - 1) { i++; player.stop(); show(); } if (e.key === 'ArrowLeft' && i > 0) { i--; player.stop(); show(); } });
 }
 
 function bindRecorder(box) {
@@ -234,8 +323,9 @@ function bindRecorder(box) {
   let recording = false;
   on(btn, 'click', async () => {
     if (!recording) {
-      try { rec.start().catch(() => {}); recording = true; btn.classList.add('rec-on'); btn.innerHTML = `${icon('mic')} Спри записа`; player.stop(); }
-      catch (e) { toast('Нужно е разрешение за микрофона.'); }
+      player.stop();
+      try { await rec.start(); } catch (e) { toast('Нужно е разрешение за микрофона.'); return; }
+      recording = true; btn.classList.add('rec-on'); btn.innerHTML = `${icon('mic')} Спри записа`;
     } else {
       recording = false; btn.classList.remove('rec-on'); btn.innerHTML = `${icon('mic')} Запиши отново`;
       const url = await rec.stop(); if (url) out.innerHTML = `<audio controls src="${url}"></audio>`;

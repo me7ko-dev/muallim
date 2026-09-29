@@ -7,6 +7,7 @@ export const $ = (s, r = document) => r.querySelector(s);
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const player = new Player();
 player.rate = store.get('rate');
+player.addEventListener('fail', () => toast('Аудиото не се зареди – проверете интернет връзката.'));
 
 const ICONS = {
   home: '<path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/>',
@@ -124,7 +125,7 @@ function settings() {
     <div class="set-row"><div class="mid"><b>Превод на български</b></div>${sw('showBg', s.get('showBg'))}</div>
   </div>
   <div class="card set-group"><div class="set-row"><div class="mid"><b>Изтрий напредъка</b><small>всички уроци стават незавършени</small></div><button class="btn ghost" id="resetBtn">Изтрий</button></div></div>
-  <div class="card about">Муаллим е безплатен и без реклами. Уроците са по ханефи мезхеб. Аудиото на сурите е от <a href="https://everyayah.com" target="_blank" rel="noopener">EveryAyah.com</a>; арабският текст е от мусхафа на Медина (Hafs), преводът – Цветан Теофанов. Всичко, което записвате с микрофона, остава само на вашия телефон.<br><br>Свързано приложение: <a href="https://me7ko-dev.github.io/quran-kerim/" target="_blank" rel="noopener">Куран-и Керим</a> – целият Коран с превод и времена за намаз.</div>`;
+  <div class="card about">Муаллим е безплатен и без реклами. Уроците са по ханефи мезхеб. Аудиото на сурите е от <a href="https://everyayah.com" target="_blank" rel="noopener">EveryAyah.com</a>; буквите, дуите и езанът – от свободни записи (<a href="https://github.com/me7ko-dev/muallim/blob/main/audio/CREDITS.md" target="_blank" rel="noopener">източници</a>); арабският текст е от мусхафа на Медина (Hafs), преводът – Цветан Теофанов. Всичко, което записвате с микрофона, остава само на вашия телефон.<br><br>Свързано приложение: <a href="https://me7ko-dev.github.io/quran-kerim/" target="_blank" rel="noopener">Куран-и Керим</a> – целият Коран с превод и времена за намаз.</div>`;
   $('#themeSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.set('theme', b.dataset.t); applyTheme(); settings(); };
   $('#rateSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.set('rate', +b.dataset.r); player.setRate(+b.dataset.r); settings(); };
   $('#arSize').oninput = e => { s.set('arSize', +e.target.value); applyAr(); e.target.previousElementSibling.querySelector('small').textContent = e.target.value + ' px'; };

@@ -1,7 +1,7 @@
 // Генерира изпити от данните и ги показва един въпрос след друг
-import { DATA, esc, icon, $ } from './app.js';
+import { DATA, esc, icon, $, player } from './app.js';
 import { saveScore } from './store.js';
-import { CYR, THICK } from './lessons.js';
+import { CYR, THICK, letterAudio } from './lessons.js';
 
 const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pick = (arr, n, not) => shuffle(arr.filter(x => x !== not)).slice(0, n);
@@ -12,6 +12,8 @@ const GEN = {
     const L = DATA.letters.letters, qs = [];
     for (const l of shuffle(L).slice(0, 5)) qs.push(mk(`Коя буква се казва <b>„${l.name}“</b>?`, l, pick(L, 3, l), `${l.name} – ${l.sound}`, x => `<span class="ar">${x.ar}</span>`));
     for (const l of shuffle(L).slice(0, 3)) qs.push(mk(`Как се казва тази буква?<span class="ar">${l.ar}</span>`, l, pick(L, 3, l), `Това е ${l.name} – ${l.sound}`, x => x.name));
+    // „Чуй и избери“ – името на буквата
+    for (const l of shuffle(L).slice(0, 3)) qs.push({ ...mk('Чуйте и изберете буквата', l, pick(L, 3, l), `Това е ${l.name} – ${l.sound}`, x => `<span class="ar">${x.ar}</span>`), snd: letterAudio(l.id) });
     for (const l of shuffle(L.filter(x => x.join)).slice(0, 2)) qs.push(mk(`Коя е формата на <b>${l.name}</b> (${l.ar}) в <b>средата</b> на думата?`, l.forms[2], pick(L.filter(x => x.join && x.forms[2] !== l.forms[2]), 3).map(x => x.forms[2]), `${l.name} в средата: ${l.forms[2]}`, x => `<span class="ar">${x}</span>`));
     return shuffle(qs);
   },
@@ -29,6 +31,11 @@ const GEN = {
     for (const l of shuffle(L).slice(0, 3)) {
       const [m, v] = V[Math.floor(Math.random() * 3)];
       qs.push(mk(`Коя сричка е <b>„${read(l, v)}“</b>?`, `${l.ar}${m}`, V.filter(([, vv]) => vv !== v).map(([mm]) => `${l.ar}${mm}`).concat([`${pick(L, 1, l)[0].ar}${m}`]), '', x => `<span class="ar">${x}</span>`));
+    }
+    // „Чуй и избери“ – сричката
+    for (const l of shuffle(L).slice(0, 3)) {
+      const [m, v] = V[Math.floor(Math.random() * 3)];
+      qs.push({ ...mk('Чуйте – коя сричка е това?', `${l.ar}${m}`, V.filter(([, vv]) => vv !== v).map(([mm]) => `${l.ar}${mm}`).concat([`${pick(L, 1, l)[0].ar}${m}`]), `„${read(l, v)}“`, x => `<span class="ar">${x}</span>`), snd: letterAudio(l.id, v) });
     }
     return shuffle(qs);
   },
@@ -78,7 +85,8 @@ export function bindQuiz(l, m) {
       return;
     }
     const q = qs[i];
-    box.innerHTML = `<div class="prog">Въпрос ${i + 1} от ${qs.length}</div><p class="q">${q.q}</p><div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><p class="fb"></p>`;
+    box.innerHTML = `<div class="prog">Въпрос ${i + 1} от ${qs.length}</div><p class="q">${q.q}</p>${q.snd ? `<button class="btn gold listen" id="qSnd">${icon('play')} Чуй отново</button>` : ''}<div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><p class="fb"></p>`;
+    if (q.snd) { const p = () => player.playOne({ url: q.snd, key: q.snd }); $('#qSnd').onclick = p; p(); } else player.stop();
     box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
       const k = +b.dataset.k; const right = k === q.ans;
       if (right) ok++;
