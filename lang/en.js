@@ -33,7 +33,7 @@ export default {
   'Копирай': 'Copy',
   'Копиране': 'Copy',
   'Копирано': 'Copied',
-  'Куран-и Керим': 'Quran-i Kerim',
+  'Куран-и Керим': 'Quran Kareem',
   'Линкът е отворен вътре в друго приложение (Viber, Facebook…). На iPhone се инсталира от Safari:': 'The link is open inside another app (Viber, Facebook…). On iPhone, install it from Safari:',
   'Линкът е отворен вътре в друго приложение (Viber, Facebook…). Оттук не може да се инсталира – отворете го в Chrome:': 'The link is open inside another app (Viber, Facebook…). It can’t be installed from here — open it in Chrome:',
   'Маркиран е – копирайте го': 'Selected — copy it',
