@@ -394,9 +394,3 @@ html:has(.pw-sheet[open]) { overflow: hidden; }
 .pw-qr .btn { height: 40px; padding: 0 14px; font-size: 14px; }
 @media (max-width: 420px) { .pw-qr { flex-direction: column; text-align: center; } .pw-qr img { width: 150px; height: 150px; } }
 .pw-share { width: 100%; margin-top: 4px; }
-
-/* ---------- смяна на езика (js/i18n.js) ---------- */
-.hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.lang-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; flex: none; margin-top: 6px; }
-.lang-btn:hover { color: var(--text); border-color: var(--gold); }
-.lang-btn .ic { width: 16px; height: 16px; }
