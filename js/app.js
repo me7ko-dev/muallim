@@ -2,6 +2,7 @@
 import { store, isDone, markDone, scoreOf } from './store.js';
 import { Player, RECITERS } from './audio.js';
 import { renderLesson, bindLesson, unbindLesson } from './lessons.js';
+import { setupPwa, installCard, settingsRows, shareButton } from './pwa.js';
 
 export const $ = (s, r = document) => r.querySelector(s);
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -64,6 +65,7 @@ function home() {
   const lastM = last && moduleById(last.m), lastL = lastM && lastM.lessons.find(l => l.id === last.l);
   const nxt = last ? nextLesson(last.m, last.l) : null;
   const cont = lastL && !isDone(last.m, last.l) ? { m: last.m, l: last.l, title: lastL.title, module: lastM.title } : nxt || { m: ms[0].id, l: ms[0].lessons[0].id, title: ms[0].lessons[0].title, module: ms[0].title };
+  const card = installCard();
   view.innerHTML = `<div class="hero fade-in">
     <h1 class="hero-title">Муаллим<span>مُعَلِّم</span></h1>
     <p>От първата буква до правилно четене на Корана и до намаза – стъпка по стъпка, с аудио, упражнения и изпити. Всичко е на български.</p>
@@ -74,9 +76,11 @@ function home() {
     <div class="card stat"><b>${store.get('streak').days}</b><small>дни подред</small></div>
   </div>
   <a class="card continue" href="${lessonHref(cont.m, cont.l)}"><span class="ic-wrap">${icon('play')}</span><div><small>${last ? 'Продължете' : 'Започнете оттук'} · ${esc(cont.module || (moduleById(cont.m) || {}).title)}</small><b>${esc(cont.title)}</b></div>${icon('chev-r')}</a>
+  ${card}
   <div class="sub">Учебна програма</div>
   <div class="modules">${ms.map(modCard).join('')}</div>
-  <div class="card note"><b>Как да учите:</b> всеки ден по 10–15 минути. Слушайте, повтаряйте на глас, записвайте се и се сравнявайте с рецитатора. Уроците са по ханефи мезхеб, както се практикува в България.</div>`;
+  <div class="card note"><b>Как да учите:</b> всеки ден по 10–15 минути. Слушайте, повтаряйте на глас, записвайте се и се сравнявайте с рецитатора. Уроците са по ханефи мезхеб, както се практикува в България.</div>
+  ${card ? '' : shareButton('Сподели Муаллим с приятел')}`;
 }
 function modCard(m) {
   const p = modProgress(m);
@@ -123,6 +127,7 @@ function settings() {
     <div class="set-row"><div class="mid"><b>Четене с български букви</b><small>под арабския текст</small></div>${sw('showTr', s.get('showTr'))}</div>
     <div class="set-row"><div class="mid"><b>Превод на български</b></div>${sw('showBg', s.get('showBg'))}</div>
   </div>
+  <div class="card set-group">${settingsRows()}</div>
   <div class="card set-group"><div class="set-row"><div class="mid"><b>Изтрий напредъка</b><small>всички уроци стават незавършени</small></div><button class="btn ghost" id="resetBtn">Изтрий</button></div></div>
   <div class="card about">Муаллим е безплатен и без реклами. Уроците са по ханефи мезхеб. Аудиото на сурите е от <a href="https://everyayah.com" target="_blank" rel="noopener">EveryAyah.com</a>; арабският текст е от мусхафа на Медина (Hafs), преводът – Цветан Теофанов. Произношението на буквите е от записа <a href="https://commons.wikimedia.org/wiki/File:%D8%AD%D8%B1%D9%88%D9%81_%D8%A7%D9%84%D8%A3%D8%A8%D8%AC%D8%AF%D9%8A%D8%A9_%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9_Arabic_alphabet.ogg" target="_blank" rel="noopener">„Arabic alphabet“</a> на Ibraheem alex (Уикимедия, лиценз GFDL), езанът – <a href="https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg" target="_blank" rel="noopener">„Beautiful adhan“</a> (Уикимедия, CC0). Всичко, което записвате с микрофона, остава само на вашия телефон.<br><br>Свързано приложение: <a href="https://me7ko-dev.github.io/quran-kerim/" target="_blank" rel="noopener">Куран-и Керим</a> – целият Коран с превод и времена за намаз.</div>`;
   $('#themeSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.set('theme', b.dataset.t); applyTheme(); settings(); };
@@ -167,6 +172,11 @@ const syncAudioBtns = () => document.querySelectorAll('[data-audio]').forEach(b 
 });
 ['state', 'end', 'fail'].forEach(t => player.addEventListener(t, syncAudioBtns));
 
+setupPwa({
+  id: 'mu', name: 'Муаллим', url: 'https://me7ko-dev.github.io/muallim/', toast,
+  title: 'Муаллим – учител по Коран и намаз',
+  text: 'Безплатно приложение за учене на Корана и намаза от нулата: арабската азбука с глас, сурите и дуите, абдест и намаз – на български, стъпка по стъпка. Без реклами.',
+});
 applyTheme(); applyAr();
 view.innerHTML = '<div class="loader"></div>';
 loadData().then(() => { route(); addEventListener('hashchange', route); })
