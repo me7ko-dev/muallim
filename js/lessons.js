@@ -17,9 +17,10 @@ const vowelOf = (id, v) => v === 'fetha' ? (THICK.has(id) ? 'а' : 'е') : v ===
 // ---------- рендери ----------
 const R = {
   letters(l) {
-    return `<p class="p muted">Разгледайте всяка буква: как изглежда сама и в думата, откъде излиза звукът, пример. Повтаряйте на глас и се запишете накрая.</p>
+    return `<p class="p muted">Разгледайте всяка буква: как изглежда сама и в думата, откъде излиза звукът, пример. Чуйте я, повторете на глас и се запишете накрая.</p>
+    <div class="ctrls"><button class="btn" data-seq>${icon('play')} Чуй всички букви подред</button></div>
     <div class="letters">${l.letters.map(id => letterById(id)).map(x => `<div class="card letter">
-      <div class="big" lang="ar">${x.ar}</div>
+      <div><div class="big" lang="ar">${x.ar}</div><button class="btn ghost btn-sm" data-audio="audio/letters/${x.id}.mp3" style="width:100%;margin-top:8px;height:40px;padding:0 8px">${icon('play')} Чуй</button></div>
       <div><h3>${esc(x.name)} <span class="badge">${esc(x.group)}</span></h3><div class="snd">Звук: ${esc(x.sound)}</div><p>${esc(x.makhraj)}</p>
         <div class="forms">${x.forms.map((f, i) => `<span lang="ar">${f}<small>${FORM_NAMES[i]}</small></span>`).join('')}</div>
         ${x.join ? '' : '<p class="muted" style="font-size:13px">Тази буква не се свързва със следващата (само с предишната).</p>'}
@@ -105,7 +106,9 @@ const R = {
   },
   ezan() {
     const E = DATA.ezan;
-    return `<p class="p">${esc(E.intro)}</p><div class="card">${E.lines.map(x => `<div class="ezan-line ${x.only ? 'sabah' : ''}"><span class="x">×${x.times}</span><p class="ar-text" lang="ar">${x.ar}</p><p class="tr-text">${esc(x.tr)}</p><p class="bg-text">${esc(x.bg)}${x.only ? ' <span class="badge">само сабах</span>' : ''}</p><div class="reply"><b>Отговор:</b> ${esc(x.reply)}</div></div>`).join('')}</div>
+    return `<p class="p">${esc(E.intro)}</p>
+    <div class="ctrls"><button class="btn" data-audio="audio/ezan.mp3">${icon('play')} Чуй езана (2:34)</button><span class="muted" style="font-size:13px">Следете реда по-долу, докато слушате.</span></div>
+    <div class="card">${E.lines.map(x => `<div class="ezan-line ${x.only ? 'sabah' : ''}"><span class="x">×${x.times}</span><p class="ar-text" lang="ar">${x.ar}</p><p class="tr-text">${esc(x.tr)}</p><p class="bg-text">${esc(x.bg)}${x.only ? ' <span class="badge">само сабах</span>' : ''}</p><div class="reply"><b>Отговор:</b> ${esc(x.reply)}</div></div>`).join('')}</div>
     <h3 class="h">${esc(E.dua.name)}</h3><div class="card dua"><p class="ar-text" lang="ar">${E.dua.ar}</p><p class="tr-text">${esc(E.dua.tr)}</p><p class="bg-text">${esc(E.dua.bg)}</p></div>
     ${recorder('Кажете езана ред по ред, бавно, запишете се и се чуйте.')}`;
   },
@@ -179,6 +182,9 @@ export function bindLesson(l, m, view) {
     const d = $('#demoAr'); if (d) { d.textContent = b.dataset.syl; $('#demoTr').textContent = b.dataset.tr; window.scrollTo({ top: 0, behavior: 'smooth' }); }
     else toast(b.dataset.tr);
   }));
+  // букви – всички подред
+  const seq = view.querySelector('[data-seq]');
+  if (seq && l.letters) on(seq, 'click', () => player.playList(l.letters.map(id => ({ url: `audio/letters/${id}.mp3`, key: id })), { each: 2 }));
   // сура – аудио
   if (l.type === 'surah') bindSurah(l, view);
   if (l.type === 'steps2') bindStepper(view);

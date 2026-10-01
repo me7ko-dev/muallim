@@ -124,7 +124,7 @@ function settings() {
     <div class="set-row"><div class="mid"><b>Превод на български</b></div>${sw('showBg', s.get('showBg'))}</div>
   </div>
   <div class="card set-group"><div class="set-row"><div class="mid"><b>Изтрий напредъка</b><small>всички уроци стават незавършени</small></div><button class="btn ghost" id="resetBtn">Изтрий</button></div></div>
-  <div class="card about">Муаллим е безплатен и без реклами. Уроците са по ханефи мезхеб. Аудиото на сурите е от <a href="https://everyayah.com" target="_blank" rel="noopener">EveryAyah.com</a>; арабският текст е от мусхафа на Медина (Hafs), преводът – Цветан Теофанов. Всичко, което записвате с микрофона, остава само на вашия телефон.<br><br>Свързано приложение: <a href="https://me7ko-dev.github.io/quran-kerim/" target="_blank" rel="noopener">Куран-и Керим</a> – целият Коран с превод и времена за намаз.</div>`;
+  <div class="card about">Муаллим е безплатен и без реклами. Уроците са по ханефи мезхеб. Аудиото на сурите е от <a href="https://everyayah.com" target="_blank" rel="noopener">EveryAyah.com</a>; арабският текст е от мусхафа на Медина (Hafs), преводът – Цветан Теофанов. Произношението на буквите е от записа <a href="https://commons.wikimedia.org/wiki/File:%D8%AD%D8%B1%D9%88%D9%81_%D8%A7%D9%84%D8%A3%D8%A8%D8%AC%D8%AF%D9%8A%D8%A9_%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9_Arabic_alphabet.ogg" target="_blank" rel="noopener">„Arabic alphabet“</a> на Ibraheem alex (Уикимедия, лиценз GFDL), езанът – <a href="https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg" target="_blank" rel="noopener">„Beautiful adhan“</a> (Уикимедия, CC0). Всичко, което записвате с микрофона, остава само на вашия телефон.<br><br>Свързано приложение: <a href="https://me7ko-dev.github.io/quran-kerim/" target="_blank" rel="noopener">Куран-и Керим</a> – целият Коран с превод и времена за намаз.</div>`;
   $('#themeSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.set('theme', b.dataset.t); applyTheme(); settings(); };
   $('#rateSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.set('rate', +b.dataset.r); player.setRate(+b.dataset.r); settings(); };
   $('#arSize').oninput = e => { s.set('arSize', +e.target.value); applyAr(); e.target.previousElementSibling.querySelector('small').textContent = e.target.value + ' px'; };
@@ -152,6 +152,20 @@ function route() {
   window.scrollTo(0, 0);
   view.focus({ preventScroll: true });
 }
+
+// Всеки бутон с data-audio пуска локален файл (букви, езан); повторно докосване – пауза, после продължава оттам
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-audio]'); if (!b) return;
+  const url = b.dataset.audio; const cur = player.current;
+  if (cur && cur.url === url && !player.el.error) player.toggle(); else player.playOne({ url, key: url });
+});
+// иконата на бутона показва дали звучи
+const syncAudioBtns = () => document.querySelectorAll('[data-audio]').forEach(b => {
+  const on = player.playing && player.current?.url === b.dataset.audio;
+  b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+  const svg = b.querySelector('svg.ic'); if (svg) svg.outerHTML = icon(on ? 'pause' : 'play');
+});
+['state', 'end', 'fail'].forEach(t => player.addEventListener(t, syncAudioBtns));
 
 applyTheme(); applyAr();
 view.innerHTML = '<div class="loader"></div>';

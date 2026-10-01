@@ -12,6 +12,7 @@ const GEN = {
     const L = DATA.letters.letters, qs = [];
     for (const l of shuffle(L).slice(0, 5)) qs.push(mk(`Коя буква се казва <b>„${l.name}“</b>?`, l, pick(L, 3, l), `${l.name} – ${l.sound}`, x => `<span class="ar">${x.ar}</span>`));
     for (const l of shuffle(L).slice(0, 3)) qs.push(mk(`Как се казва тази буква?<span class="ar">${l.ar}</span>`, l, pick(L, 3, l), `Това е ${l.name} – ${l.sound}`, x => x.name));
+    for (const l of shuffle(L).slice(0, 3)) qs.push(mk(`Чуйте и познайте буквата:<br><button class="btn ghost" data-audio="audio/letters/${l.id}.mp3" style="margin:10px 0">${icon('play')} Чуй</button>`, l, pick(L, 3, l), `Това беше ${l.name}`, x => `<span class="ar">${x.ar}</span>`));
     for (const l of shuffle(L.filter(x => x.join)).slice(0, 2)) qs.push(mk(`Коя е формата на <b>${l.name}</b> (${l.ar}) в <b>средата</b> на думата?`, l.forms[2], pick(L.filter(x => x.join && x.forms[2] !== l.forms[2]), 3).map(x => x.forms[2]), `${l.name} в средата: ${l.forms[2]}`, x => `<span class="ar">${x}</span>`));
     return shuffle(qs);
   },
@@ -79,6 +80,8 @@ export function bindQuiz(l, m) {
     }
     const q = qs[i];
     box.innerHTML = `<div class="prog">Въпрос ${i + 1} от ${qs.length}</div><p class="q">${q.q}</p><div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><p class="fb"></p>`;
+    // „чуй и познай“ – звукът тръгва сам (докосването на „Следващ“ го позволява)
+    const au = box.querySelector('.q [data-audio]'); if (au) setTimeout(() => au.isConnected && au.click(), 300);
     box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
       const k = +b.dataset.k; const right = k === q.ans;
       if (right) ok++;

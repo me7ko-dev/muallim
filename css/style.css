@@ -103,6 +103,7 @@ main { padding: 0 16px calc(var(--tab) + 24px); max-width: 860px; margin: 0 auto
 .btn:hover { filter: brightness(1.08); }
 .btn:active { transform: scale(.98); }
 .btn.ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+.btn.ghost.on { border-color: var(--accent); color: var(--accent); } /* бутон „Чуй“, докато звучи */
 .btn.gold { background: var(--gold); color: #fff; }
 .btn.done { background: var(--ok); color: #fff; }
 .btn:disabled { opacity: .5; cursor: default; }

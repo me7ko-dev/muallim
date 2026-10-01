@@ -1,10 +1,12 @@
 // Service worker: приложението се отваря и без интернет. Кодът – първо от мрежата (за обновления), шрифтовете – от кеша.
-const SHELL = 'mu-shell-v1';
-const DATA = 'mu-data-v1';
+const SHELL = 'mu-shell-v2';
+const DATA = 'mu-data-v2';
 const SHELL_FILES = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/store.js', 'js/audio.js', 'js/lessons.js', 'js/quiz.js', 'js/figure.js',
   'data/course.json', 'data/letters.json', 'data/surahs.json', 'data/translit.json', 'data/dualar.json', 'data/ezan.json', 'data/abdest.json', 'data/namaz.json',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
-const FONTS = ['UthmanicHafs', 'manrope-cyrillic', 'manrope-latin', 'manrope-latin-ext', 'cormorant-cyrillic', 'cormorant-latin', 'cormorant-latin-ext'].map(f => `fonts/${f}.woff2`);
+const FONTS = ['UthmanicHafs', 'manrope-cyrillic', 'manrope-latin', 'manrope-latin-ext', 'cormorant-cyrillic', 'cormorant-latin', 'cormorant-latin-ext'].map(f => `fonts/${f}.woff2`)
+  // звуците на буквите са малки (228 KB общо) – теглят се веднъж, за офлайн
+  .concat('alif ba ta tha jim hha kha dal dhal ra zay sin shin sad dad tta zza ayn ghayn fa qaf kaf lam mim nun ha waw ya'.split(' ').map(id => `audio/letters/${id}.mp3`));
 
 self.addEventListener('install', e => {
   e.waitUntil(Promise.all([
@@ -18,7 +20,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== location.origin) return; // аудиото минава направо
-  if (url.pathname.endsWith('.woff2')) {
+  // шрифтове и локално аудио – от кеша (езанът се кешира при първото пускане)
+  if (url.pathname.endsWith('.woff2') || /\/audio\/.+\.mp3$/.test(url.pathname)) {
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) { const cl = r.clone(); caches.open(DATA).then(c => c.put(req, cl)); } return r; })));
     return;
   }
