@@ -1,7 +1,7 @@
 // Service worker: приложението се отваря и без интернет. Кодът – първо от мрежата (за обновления), шрифтовете – от кеша.
-const SHELL = 'mu-shell-v3';
+const SHELL = 'mu-shell-v4';
 const DATA = 'mu-data-v2';
-const SHELL_FILES = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/store.js', 'js/audio.js', 'js/lessons.js', 'js/quiz.js', 'js/figure.js', 'js/pwa.js',
+const SHELL_FILES = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/store.js', 'js/audio.js', 'js/lessons.js', 'js/quiz.js', 'js/figure.js', 'js/pwa.js', 'js/i18n.js', 'lang/en.js',
   'data/course.json', 'data/letters.json', 'data/surahs.json', 'data/translit.json', 'data/dualar.json', 'data/ezan.json', 'data/abdest.json', 'data/namaz.json',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png'];
 const FONTS = ['UthmanicHafs', 'manrope-cyrillic', 'manrope-latin', 'manrope-latin-ext', 'cormorant-cyrillic', 'cormorant-latin', 'cormorant-latin-ext'].map(f => `fonts/${f}.woff2`)

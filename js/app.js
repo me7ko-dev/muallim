@@ -3,6 +3,7 @@ import { store, isDone, markDone, scoreOf } from './store.js';
 import { Player, RECITERS } from './audio.js';
 import { renderLesson, bindLesson, unbindLesson } from './lessons.js';
 import { setupPwa, installCard, settingsRows, shareButton } from './pwa.js';
+import { t, lang, bgAttr, translateStatic, langButton, langRow } from './i18n.js';
 
 export const $ = (s, r = document) => r.querySelector(s);
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -47,16 +48,16 @@ const modProgress = m => { const d = m.lessons.filter(l => isDone(m.id, l.id)).l
 const NAV = [['#/', 'Начало', 'home'], ['#/kurs', 'Уроци', 'course'], ['#/m/namaz', 'Намаз', 'pray'], ['#/settings', 'Настройки', 'settings']];
 function renderNav(hash) {
   const on = h => (h === '#/' ? hash === '#/' || hash === '' || hash === '#' : hash.startsWith(h)) ? 'on' : '';
-  const html = NAV.map(([h, t, i]) => `<a href="${h}" class="${on(h)}" ${on(h) ? 'aria-current="page"' : ''}>${icon(i)}<span>${t}</span></a>`).join('');
+  const html = NAV.map(([h, n, i]) => `<a href="${h}" class="${on(h)}" ${on(h) ? 'aria-current="page"' : ''}>${icon(i)}<span>${t(n)}</span></a>`).join('');
   $('#railNav').innerHTML = html; $('#tabbar').innerHTML = html;
 }
 const view = $('#view');
 let toastT;
-export function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600); }
+export function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600); }
 export const go = h => { location.hash = h; };
 
 // ---------- екрани ----------
-const back = to => `<button class="ib" onclick="history.length>1?history.back():location.hash='${to}'" aria-label="Назад">${icon('chev-l')}</button>`;
+const back = to => `<button class="ib" onclick="history.length>1?history.back():location.hash='${to}'" aria-label="${t('Назад')}">${icon('chev-l')}</button>`;
 
 function home() {
   const ms = modules();
@@ -67,36 +68,36 @@ function home() {
   const cont = lastL && !isDone(last.m, last.l) ? { m: last.m, l: last.l, title: lastL.title, module: lastM.title } : nxt || { m: ms[0].id, l: ms[0].lessons[0].id, title: ms[0].lessons[0].title, module: ms[0].title };
   const card = installCard();
   view.innerHTML = `<div class="hero fade-in">
-    <h1 class="hero-title">Муаллим<span>مُعَلِّم</span></h1>
-    <p>От първата буква до правилно четене на Корана и до намаза – стъпка по стъпка, с аудио, упражнения и изпити. Всичко е на български.</p>
+    <div class="hero-top"><h1 class="hero-title">${t('Муаллим')}<span>مُعَلِّم</span></h1>${langButton()}</div>
+    <p>${t('От първата буква до правилно четене на Корана и до намаза – стъпка по стъпка, с аудио, упражнения и изпити. Всичко е на български.')}</p>
   </div>
   <div class="stats">
-    <div class="card stat"><b>${done}</b><small>от ${total} урока</small></div>
-    <div class="card stat"><b>${Math.round(done / total * 100)}%</b><small>завършено</small></div>
-    <div class="card stat"><b>${store.get('streak').days}</b><small>дни подред</small></div>
+    <div class="card stat"><b>${done}</b><small>${t('от {n} урока', { n: total })}</small></div>
+    <div class="card stat"><b>${Math.round(done / total * 100)}%</b><small>${t('завършено')}</small></div>
+    <div class="card stat"><b>${store.get('streak').days}</b><small>${t('дни подред')}</small></div>
   </div>
-  <a class="card continue" href="${lessonHref(cont.m, cont.l)}"><span class="ic-wrap">${icon('play')}</span><div><small>${last ? 'Продължете' : 'Започнете оттук'} · ${esc(cont.module || (moduleById(cont.m) || {}).title)}</small><b>${esc(cont.title)}</b></div>${icon('chev-r')}</a>
+  <a class="card continue" href="${lessonHref(cont.m, cont.l)}"><span class="ic-wrap">${icon('play')}</span><div><small>${t(last ? 'Продължете' : 'Започнете оттук')} · <span${bgAttr()}>${esc(cont.module || (moduleById(cont.m) || {}).title)}</span></small><b${bgAttr()}>${esc(cont.title)}</b></div>${icon('chev-r')}</a>
   ${card}
-  <div class="sub">Учебна програма</div>
+  <div class="sub">${t('Учебна програма')}</div>
   <div class="modules">${ms.map(modCard).join('')}</div>
-  <div class="card note"><b>Как да учите:</b> всеки ден по 10–15 минути. Слушайте, повтаряйте на глас, записвайте се и се сравнявайте с рецитатора. Уроците са по ханефи мезхеб, както се практикува в България.</div>
-  ${card ? '' : shareButton('Сподели Муаллим с приятел')}`;
+  <div class="card note"><b>${t('Как да учите:')}</b> ${t('всеки ден по 10–15 минути. Слушайте, повтаряйте на глас, записвайте се и се сравнявайте с рецитатора. Уроците са по ханефи мезхеб, както се практикува в България.')}</div>
+  ${card ? '' : shareButton(t('Сподели Муаллим с приятел'))}`;
 }
 function modCard(m) {
   const p = modProgress(m);
-  return `<a class="card mod" href="#/m/${m.id}"><span class="ic-wrap">${icon(m.icon)}</span><div class="mid"><b>${esc(m.title)}</b><small>${esc(m.sub)}</small><div class="bar"><i style="width:${p.pct}%"></i></div></div><span class="pct">${p.d}/${p.t}</span></a>`;
+  return `<a class="card mod" href="#/m/${m.id}"><span class="ic-wrap">${icon(m.icon)}</span><div class="mid"><b${bgAttr()}>${esc(m.title)}</b><small${bgAttr()}>${esc(m.sub)}</small><div class="bar"><i style="width:${p.pct}%"></i></div></div><span class="pct">${p.d}/${p.t}</span></a>`;
 }
 function course() {
-  view.innerHTML = `<div class="topbar"><h1>Уроци</h1></div><div class="modules fade-in">${modules().map(modCard).join('')}</div>`;
+  view.innerHTML = `<div class="topbar"><h1>${t('Уроци')}</h1></div><div class="modules fade-in">${modules().map(modCard).join('')}</div>`;
 }
 function moduleScreen(id) {
   const m = moduleById(id); if (!m) return notFound();
   const p = modProgress(m);
-  view.innerHTML = `<div class="topbar">${back('#/kurs')}<h1>${esc(m.title)}<small>${p.d}/${p.t}</small></h1></div>
-  <p class="muted" style="margin:6px 0 16px">${esc(m.sub)}</p>
+  view.innerHTML = `<div class="topbar">${back('#/kurs')}<h1><span${bgAttr()}>${esc(m.title)}</span><small>${p.d}/${p.t}</small></h1></div>
+  <p class="muted" style="margin:6px 0 16px"${bgAttr()}>${esc(m.sub)}</p>
   <div class="lessons fade-in">${m.lessons.map((l, i) => {
     const d = isDone(m.id, l.id), sc = scoreOf(m.id, l.id);
-    return `<a class="lrow ${d ? 'done' : ''}" href="${lessonHref(m.id, l.id)}"><span class="n">${d ? icon('check') : i + 1}</span><div class="mid"><b>${esc(l.title)}</b><small>${l.type === 'quiz' ? (sc ? `Резултат: ${sc.ok}/${sc.total}` : 'Изпит') : d ? 'Завършен' : 'Урок'}</small></div>${icon('chev-r')}</a>`;
+    return `<a class="lrow ${d ? 'done' : ''}" href="${lessonHref(m.id, l.id)}"><span class="n">${d ? icon('check') : i + 1}</span><div class="mid"><b${bgAttr()}>${esc(l.title)}</b><small>${l.type === 'quiz' ? (sc ? t('Резултат: {n}', { n: `${sc.ok}/${sc.total}` }) : t('Изпит')) : t(d ? 'Завършен' : 'Урок')}</small></div>${icon('chev-r')}</a>`;
   }).join('')}</div>`;
 }
 function lessonScreen(mId, lId) {
@@ -105,39 +106,40 @@ function lessonScreen(mId, lId) {
   store.set('last', { m: mId, l: lId });
   const nxt = nextLesson(mId, lId);
   const done = isDone(mId, lId);
-  view.innerHTML = `<div class="topbar">${back('#/m/' + mId)}<h1>${esc(l.title)}<small>${esc(m.title)}</small></h1></div>
-  <div class="lesson fade-in" id="lesson">${renderLesson(l, m)}</div>
+  view.innerHTML = `<div class="topbar">${back('#/m/' + mId)}<h1><span${bgAttr()}>${esc(l.title)}</span><small${bgAttr()}>${esc(m.title)}</small></h1></div>
+  <div class="lesson fade-in" id="lesson"${bgAttr()}>${renderLesson(l, m)}</div>
   ${l.type === 'quiz' ? '' : `<div class="lesson-foot">
-    <button class="btn ${done ? 'done' : ''}" id="doneBtn">${icon('check')} ${done ? 'Завършен' : 'Научих го'}</button>
-    ${nxt ? `<a class="btn ghost" href="${lessonHref(nxt.m, nxt.l)}">Следващ ${icon('chev-r')}</a>` : ''}
+    <button class="btn ${done ? 'done' : ''}" id="doneBtn">${icon('check')} ${t(done ? 'Завършен' : 'Научих го')}</button>
+    ${nxt ? `<a class="btn ghost" href="${lessonHref(nxt.m, nxt.l)}">${t('Следващ')} ${icon('chev-r')}</a>` : ''}
   </div>`}`;
   bindLesson(l, m, view);
   const db = $('#doneBtn');
-  if (db) db.onclick = () => { markDone(mId, lId); db.classList.add('done'); db.innerHTML = `${icon('check')} Завършен`; toast('Браво! Урокът е отбелязан.'); };
+  if (db) db.onclick = () => { markDone(mId, lId); db.classList.add('done'); db.innerHTML = `${icon('check')} ${t('Завършен')}`; toast(t('Браво! Урокът е отбелязан.')); };
 }
 function settings() {
   const s = store;
-  const sw = (k, on) => `<button class="switch ${on ? 'on' : ''}" role="switch" aria-checked="${on}" data-sw="${k}"></button>`;
-  view.innerHTML = `<div class="topbar"><h1>Настройки</h1></div>
+  const sw = (k, on, label) => `<button class="switch ${on ? 'on' : ''}" role="switch" aria-checked="${on}" aria-label="${label}" data-sw="${k}"></button>`;
+  view.innerHTML = `<div class="topbar"><h1>${t('Настройки')}</h1></div>
+  <div class="card set-group fade-in">${langRow()}</div>
   <div class="card set-group fade-in">
-    <div class="set-row"><div class="mid"><b>Тема</b></div><div class="seg" id="themeSeg">${['auto', 'light', 'sepia', 'dark'].map(t => `<button data-t="${t}" class="${s.get('theme') === t ? 'on' : ''}">${{ auto: 'Авто', light: 'Светла', sepia: 'Сепия', dark: 'Тъмна' }[t]}</button>`).join('')}</div></div>
-    <div class="set-row"><div class="mid"><b>Размер на арабския текст</b><small>${s.get('arSize')} px</small></div><input type="range" class="range" min="28" max="64" value="${s.get('arSize')}" id="arSize"></div>
-    <div class="set-row"><div class="mid"><b>Рецитатор</b><small>за сурите в уроците</small></div><select id="reciter">${RECITERS.map(r => `<option value="${r.id}" ${s.get('reciter') === r.id ? 'selected' : ''}>${r.name} – ${r.note}</option>`).join('')}</select></div>
-    <div class="set-row"><div class="mid"><b>Скорост</b><small>${s.get('rate')}×</small></div><div class="seg" id="rateSeg">${[0.75, 1, 1.25].map(r => `<button data-r="${r}" class="${s.get('rate') === r ? 'on' : ''}">${r}×</button>`).join('')}</div></div>
-    <div class="set-row"><div class="mid"><b>Четене с български букви</b><small>под арабския текст</small></div>${sw('showTr', s.get('showTr'))}</div>
-    <div class="set-row"><div class="mid"><b>Превод на български</b></div>${sw('showBg', s.get('showBg'))}</div>
+    <div class="set-row"><div class="mid"><b>${t('Тема')}</b></div><div class="seg" id="themeSeg">${['auto', 'light', 'sepia', 'dark'].map(k => `<button data-t="${k}" class="${s.get('theme') === k ? 'on' : ''}">${t({ auto: 'Авто', light: 'Светла', sepia: 'Сепия', dark: 'Тъмна' }[k])}</button>`).join('')}</div></div>
+    <div class="set-row"><div class="mid"><b>${t('Размер на арабския текст')}</b><small>${s.get('arSize')} px</small></div><input type="range" class="range" min="28" max="64" value="${s.get('arSize')}" id="arSize"></div>
+    <div class="set-row"><div class="mid"><b>${t('Рецитатор')}</b><small>${t('за сурите в уроците')}</small></div><select id="reciter" aria-label="${t('Рецитатор')}">${RECITERS.map(r => `<option value="${r.id}" ${s.get('reciter') === r.id ? 'selected' : ''}>${t(r.name)} – ${t(r.note)}</option>`).join('')}</select></div>
+    <div class="set-row"><div class="mid"><b>${t('Скорост')}</b><small>${s.get('rate')}×</small></div><div class="seg" id="rateSeg">${[0.75, 1, 1.25].map(r => `<button data-r="${r}" class="${s.get('rate') === r ? 'on' : ''}">${r}×</button>`).join('')}</div></div>
+    <div class="set-row"><div class="mid"><b>${t('Четене с български букви')}</b><small>${t('под арабския текст')}</small></div>${sw('showTr', s.get('showTr'), t('Четене с български букви'))}</div>
+    <div class="set-row"><div class="mid"><b>${t('Превод на български')}</b></div>${sw('showBg', s.get('showBg'), t('Превод на български'))}</div>
   </div>
   <div class="card set-group">${settingsRows()}</div>
-  <div class="card set-group"><div class="set-row"><div class="mid"><b>Изтрий напредъка</b><small>всички уроци стават незавършени</small></div><button class="btn ghost" id="resetBtn">Изтрий</button></div></div>
-  <div class="card about">Муаллим е безплатен и без реклами. Уроците са по ханефи мезхеб. Аудиото на сурите е от <a href="https://everyayah.com" target="_blank" rel="noopener">EveryAyah.com</a>; арабският текст е от мусхафа на Медина (Hafs), преводът – Цветан Теофанов. Произношението на буквите е от записа <a href="https://commons.wikimedia.org/wiki/File:%D8%AD%D8%B1%D9%88%D9%81_%D8%A7%D9%84%D8%A3%D8%A8%D8%AC%D8%AF%D9%8A%D8%A9_%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9_Arabic_alphabet.ogg" target="_blank" rel="noopener">„Arabic alphabet“</a> на Ibraheem alex (Уикимедия, лиценз GFDL), езанът – <a href="https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg" target="_blank" rel="noopener">„Beautiful adhan“</a> (Уикимедия, CC0). Всичко, което записвате с микрофона, остава само на вашия телефон.<br><br>Свързано приложение: <a href="https://me7ko-dev.github.io/quran-kerim/" target="_blank" rel="noopener">Куран-и Керим</a> – целият Коран с превод и времена за намаз.</div>`;
+  <div class="card set-group"><div class="set-row"><div class="mid"><b>${t('Изтрий напредъка')}</b><small>${t('всички уроци стават незавършени')}</small></div><button class="btn ghost" id="resetBtn">${t('Изтрий')}</button></div></div>
+  <div class="card about">${t('Муаллим е безплатен и без реклами. Уроците са по ханефи мезхеб. Аудиото на сурите е от {everyayah}; арабският текст е от мусхафа на Медина (Hafs), преводът – Цветан Теофанов. Произношението на буквите е от записа {letters} на Ibraheem alex (Уикимедия, лиценз GFDL), езанът – {adhan} (Уикимедия, CC0). Всичко, което записвате с микрофона, остава само на вашия телефон.', { everyayah: '<a href="https://everyayah.com" target="_blank" rel="noopener">EveryAyah.com</a>', letters: '<a href="https://commons.wikimedia.org/wiki/File:%D8%AD%D8%B1%D9%88%D9%81_%D8%A7%D9%84%D8%A3%D8%A8%D8%AC%D8%AF%D9%8A%D8%A9_%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9_Arabic_alphabet.ogg" target="_blank" rel="noopener">„Arabic alphabet“</a>', adhan: '<a href="https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg" target="_blank" rel="noopener">„Beautiful adhan“</a>' })}<br><br>${t('Свързано приложение: {app} – целият Коран с превод и времена за намаз.', { app: `<a href="https://me7ko-dev.github.io/quran-kerim/${lang === 'bg' ? '' : '?lang=' + lang}" target="_blank" rel="noopener">${t('Куран-и Керим')}</a>` })}</div>`;
   $('#themeSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.set('theme', b.dataset.t); applyTheme(); settings(); };
   $('#rateSeg').onclick = e => { const b = e.target.closest('button'); if (!b) return; s.set('rate', +b.dataset.r); player.setRate(+b.dataset.r); settings(); };
   $('#arSize').oninput = e => { s.set('arSize', +e.target.value); applyAr(); e.target.previousElementSibling.querySelector('small').textContent = e.target.value + ' px'; };
   $('#reciter').onchange = e => s.set('reciter', e.target.value);
   view.querySelectorAll('[data-sw]').forEach(b => b.onclick = () => { s.set(b.dataset.sw, !s.get(b.dataset.sw)); settings(); });
-  $('#resetBtn').onclick = () => { if (confirm('Да изтрия ли целия напредък?')) { s.set('done', {}); s.set('scores', {}); s.set('last', null); toast('Напредъкът е изтрит.'); } };
+  $('#resetBtn').onclick = () => { if (confirm(t('Да изтрия ли целия напредък?'))) { s.set('done', {}); s.set('scores', {}); s.set('last', null); toast(t('Напредъкът е изтрит.')); } };
 }
-function notFound() { view.innerHTML = `<div class="empty"><p>Няма такава страница.</p><a class="btn" href="#/">Към началото</a></div>`; }
+function notFound() { view.innerHTML = `<div class="empty"><p>${t('Няма такава страница.')}</p><a class="btn" href="#/">${t('Към началото')}</a></div>`; }
 
 function applyTheme() { const t = store.get('theme'); if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
 function applyAr() { document.documentElement.style.setProperty('--ar', store.get('arSize') + 'px'); }
@@ -170,14 +172,15 @@ const syncAudioBtns = () => document.querySelectorAll('[data-audio]').forEach(b 
   b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
   const svg = b.querySelector('svg.ic'); if (svg) svg.outerHTML = icon(on ? 'pause' : 'play');
 });
-['state', 'end', 'fail'].forEach(t => player.addEventListener(t, syncAudioBtns));
+['state', 'end', 'fail'].forEach(ev => player.addEventListener(ev, syncAudioBtns));
 
+translateStatic();
 setupPwa({
-  id: 'mu', name: 'Муаллим', url: 'https://me7ko-dev.github.io/muallim/', toast,
-  title: 'Муаллим – учител по Коран и намаз',
-  text: 'Безплатно приложение за учене на Корана и намаза от нулата: арабската азбука с глас, сурите и дуите, абдест и намаз – на български, стъпка по стъпка. Без реклами.',
+  id: 'mu', name: t('Муаллим'), url: 'https://me7ko-dev.github.io/muallim/' + (lang === 'bg' ? '' : lang + '/'), toast, // …/en/ – английска визитка в групите
+  title: t('Муаллим – учител по Коран и намаз'),
+  text: t('Безплатно приложение за учене на Корана и намаза от нулата: арабската азбука с глас, сурите и дуите, абдест и намаз – на български, стъпка по стъпка. Без реклами.'),
 });
 applyTheme(); applyAr();
 view.innerHTML = '<div class="loader"></div>';
 loadData().then(() => { route(); addEventListener('hashchange', route); })
-  .catch(err => { view.innerHTML = `<div class="empty"><p>Данните не се заредиха (${esc(err.message)}). Проверете връзката и опитайте пак.</p><a class="btn" href="./">Опитай отново</a></div>`; });
+  .catch(err => { view.innerHTML = `<div class="empty"><p>${t('Данните не се заредиха ({e}). Проверете връзката и опитайте пак.', { e: esc(err.message) })}</p><a class="btn" href="./">${t('Опитай отново')}</a></div>`; });

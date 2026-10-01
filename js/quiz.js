@@ -2,6 +2,7 @@
 import { DATA, esc, icon, $ } from './app.js';
 import { saveScore } from './store.js';
 import { CYR, THICK } from './lessons.js';
+import { t, uiAttr } from './i18n.js';
 
 export const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pick = (arr, n, not) => shuffle(arr.filter(x => x !== not)).slice(0, n);
@@ -74,20 +75,20 @@ export function bindQuiz(l, m) {
     if (i >= qs.length) {
       saveScore(m.id, l.id, ok, qs.length);
       const pct = Math.round(ok / qs.length * 100);
-      box.innerHTML = `<div class="result"><div class="muted">Резултат</div><b>${ok} / ${qs.length}</b><p>${pct >= 90 ? 'Отлично! Машаллах.' : pct >= 70 ? 'Много добре – урокът е отбелязан като научен.' : 'Прегледайте уроците още веднъж и опитайте пак.'}</p><div class="acts" style="justify-content:center"><button class="btn" id="again">Още веднъж</button><a class="btn ghost" href="#/m/${m.id}">Към модула</a></div></div>`;
+      box.innerHTML = `<div class="result"${uiAttr()}><div class="muted">${t('Резултат')}</div><b>${ok} / ${qs.length}</b><p>${pct >= 90 ? t('Отлично! Машаллах.') : pct >= 70 ? t('Много добре – урокът е отбелязан като научен.') : t('Прегледайте уроците още веднъж и опитайте пак.')}</p><div class="acts" style="justify-content:center"><button class="btn" id="again">${t('Още веднъж')}</button><a class="btn ghost" href="#/m/${m.id}">${t('Към модула')}</a></div></div>`;
       $('#again').onclick = () => { i = 0; ok = 0; qs.splice(0, qs.length, ...GEN[l.kind]()); show(); };
       return;
     }
     const q = qs[i];
-    box.innerHTML = `<div class="prog">Въпрос ${i + 1} от ${qs.length}</div><p class="q">${q.q}</p><div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><p class="fb"></p>`;
+    box.innerHTML = `<div class="prog"${uiAttr()}>${t('Въпрос {i} от {n}', { i: i + 1, n: qs.length })}</div><p class="q">${q.q}</p><div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><p class="fb"></p>`;
     // „чуй и познай“ – звукът тръгва сам (докосването на „Следващ“ го позволява)
     const au = box.querySelector('.q [data-audio]'); if (au) setTimeout(() => au.isConnected && au.click(), 300);
     box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
       const k = +b.dataset.k; const right = k === q.ans;
       if (right) ok++;
       box.querySelectorAll('.opt').forEach((x, j) => { x.disabled = true; if (j === q.ans) x.classList.add('ok'); else if (j === k) x.classList.add('bad'); });
-      const fb = box.querySelector('.fb'); fb.className = 'fb ' + (right ? 'ok' : 'bad'); fb.innerHTML = (right ? '✓ Вярно! ' : '✕ Не съвсем. ') + esc(q.explain || '');
-      const nb = document.createElement('button'); nb.className = 'btn'; nb.style.marginTop = '12px'; nb.innerHTML = `${i + 1 < qs.length ? 'Следващ' : 'Резултат'} ${icon('chev-r')}`; nb.onclick = () => { i++; show(); };
+      const fb = box.querySelector('.fb'); fb.className = 'fb ' + (right ? 'ok' : 'bad'); fb.innerHTML = `<span${uiAttr()}>${right ? '✓ ' + t('Вярно!') : '✕ ' + t('Не съвсем.')}</span> ` + esc(q.explain || '');
+      const nb = document.createElement('button'); nb.className = 'btn'; nb.style.marginTop = '12px'; nb.innerHTML = `${t(i + 1 < qs.length ? 'Следващ' : 'Резултат')} ${icon('chev-r')}`; if (uiAttr()) nb.lang = document.documentElement.lang; nb.onclick = () => { i++; show(); };
       box.appendChild(nb); nb.focus();
     });
   };

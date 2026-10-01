@@ -14,6 +14,13 @@
 - **QR код:** https://me7ko-dev.github.io/muallim/share/qr.png
 - **Плакат A4 за печат:** https://me7ko-dev.github.io/muallim/share/plakat-a4.pdf
 
+## Езици
+
+- **Български** – основен. **Английски** – засега само интерфейсът (менюта, бутони, изпити, Настройки). Уроците са на български и се превеждат на следващата стъпка.
+- Линк на английски (с английска визитка за групите): https://me7ko-dev.github.io/muallim/en/
+- Изборът е в Настройки → „Език · Language“ или с `?lang=en` в адреса.
+- Следващите езици: турски, албански, босненски, немски.
+
 ## Как се пуска локално
 
 ```
@@ -38,5 +45,8 @@ node tools/serve.mjs
 node tools/smoke.mjs http://localhost:8932/                  # всички екрани без грешки (сървърът да е пуснат)
 NODE_PATH="$(npm root -g)" node tools/test-pwa.cjs            # „Инсталирай“ и „Сподели“ на телефон и компютър (Playwright)
 NODE_PATH="$(npm root -g)" node tools/make-share.cjs          # прави наново share/og.jpg, qr.svg, qr.png, plakat-a4.pdf
+NODE_PATH="$(npm root -g)" node tools/make-share.cjs en       # същото на английски + страницата en/index.html
+node tools/check-i18n.cjs en                                   # всеки текст от кода да има превод в lang/en.js
+NODE_PATH="$(npm root -g)" node tools/test-i18n.cjs en        # всеки екран на английски, без забравен български текст
 ```
 (`NODE_PATH=...` е за Git Bash; нужни са `npm i -g playwright qrcode`.)

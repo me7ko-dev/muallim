@@ -4,6 +4,7 @@ import { store, markDone } from './store.js';
 import { ayahUrl, Recorder } from './audio.js';
 import { figureSvg, POS_NAME } from './figure.js';
 import { renderQuiz, bindQuiz, shuffle } from './quiz.js';
+import { t, tn, uiAttr } from './i18n.js';
 
 // Как звучи всяка буква с български букви (за срички и тестове)
 export const CYR = { alif: '', ba: 'б', ta: 'т', tha: 'с', jim: 'дж', hha: 'х', kha: 'х', dal: 'д', dhal: 'з', ra: 'р', zay: 'з', sin: 'с', shin: 'ш', sad: 'с', dad: 'д', tta: 'т', zza: 'з', ayn: '’', ghayn: 'г', fa: 'ф', qaf: 'к', kaf: 'к', lam: 'л', mim: 'м', nun: 'н', ha: 'х', waw: 'в', ya: 'й' };
@@ -18,11 +19,11 @@ const vowelOf = (id, v) => v === 'fetha' ? (THICK.has(id) ? 'а' : 'е') : v ===
 const R = {
   letters(l) {
     return `<p class="p muted">Разгледайте всяка буква: как изглежда сама и в думата, откъде излиза звукът, пример. Чуйте я, повторете на глас и се запишете накрая.</p>
-    <div class="ctrls"><button class="btn" data-seq>${icon('play')} Чуй всички букви подред</button></div>
+    <div class="ctrls"><button class="btn" data-seq${uiAttr()}>${icon('play')} ${t('Чуй всички букви подред')}</button></div>
     <div class="letters">${l.letters.map(id => letterById(id)).map(x => `<div class="card letter">
-      <div><div class="big" lang="ar">${x.ar}</div><button class="btn ghost btn-sm" data-audio="audio/letters/${x.id}.mp3" style="width:100%;margin-top:8px;height:40px;padding:0 8px">${icon('play')} Чуй</button></div>
-      <div><h3>${esc(x.name)} <span class="badge">${esc(x.group)}</span></h3><div class="snd">Звук: ${esc(x.sound)}</div><p>${esc(x.makhraj)}</p>
-        <div class="forms">${x.forms.map((f, i) => `<span lang="ar">${f}<small>${FORM_NAMES[i]}</small></span>`).join('')}</div>
+      <div><div class="big" lang="ar">${x.ar}</div><button class="btn ghost btn-sm"${uiAttr()} data-audio="audio/letters/${x.id}.mp3" style="width:100%;margin-top:8px;height:40px;padding:0 8px">${icon('play')} ${t('Чуй')}</button></div>
+      <div><h3>${esc(x.name)} <span class="badge">${esc(x.group)}</span></h3><div class="snd"><span${uiAttr()}>${t('Звук:')}</span> ${esc(x.sound)}</div><p>${esc(x.makhraj)}</p>
+        <div class="forms">${x.forms.map((f, i) => `<span lang="ar">${f}<small lang="${document.documentElement.lang}">${t(FORM_NAMES[i])}</small></span>`).join('')}</div>
         ${x.join ? '' : '<p class="muted" style="font-size:13px">Тази буква не се свързва със следващата (само с предишната).</p>'}
         <div class="ex">${ar(x.example.ar)}<div><b>${esc(x.example.tr)}</b><br><small>${esc(x.example.bg)}</small></div></div>
       </div></div>`).join('')}</div>${recorder('Прочетете имената и звуковете на буквите на глас, запишете се и се чуйте.')}`;
@@ -89,15 +90,15 @@ const R = {
     const cls = `${store.get('showTr') ? '' : 'hide-tr'} ${store.get('showBg') ? '' : 'hide-bg'}`;
     return `<div class="card surah-head"><div class="ar" lang="ar">${S.ar}</div><h2>${esc(S.name)}</h2><p>${esc(S.mean)} · ${S.ayahs.length} ${S.ayahs.length === 1 ? 'айет' : 'айета'}</p></div>
     <div class="ctrls">
-      <button class="btn" data-playall>${icon('play')} Пусни цялата</button>
-      <button class="btn gold" data-learn>${icon('play')} Заучаване</button>
-      <span class="muted" style="font-size:13px">Заучаване: всеки айет ×<b id="eachN">3</b>, цялата ×<b id="loopN">2</b></span>
+      <button class="btn" data-playall${uiAttr()}>${icon('play')} ${t('Пусни цялата')}</button>
+      <button class="btn gold" data-learn${uiAttr()}>${icon('play')} ${t('Заучаване')}</button>
+      <span class="muted" style="font-size:13px"${uiAttr()}>${t('Заучаване: всеки айет ×{each}, цялата ×{loops}', { each: '<b id="eachN">3</b>', loops: '<b id="loopN">2</b>' })}</span>
       <div class="seg" id="eachSeg">${[1, 3, 5].map(n => `<button data-each="${n}" class="${n === 3 ? 'on' : ''}">×${n}</button>`).join('')}</div>
     </div>
-    <div class="ayahs ${cls}">${S.ayahs.map(a => `<div class="ayah" data-a="${a.a}"><div class="ayah-top"><span class="ayah-key">${l.s}:${a.a}</span><button class="ib" data-play="${a.a}" aria-label="Пусни айет ${a.a}">${icon('play')}</button></div>
+    <div class="ayahs ${cls}">${S.ayahs.map(a => `<div class="ayah" data-a="${a.a}"><div class="ayah-top"><span class="ayah-key">${l.s}:${a.a}</span><button class="ib" data-play="${a.a}"${uiAttr()} aria-label="${t('Пусни айет {n}', { n: a.a })}">${icon('play')}</button></div>
       <p class="ar-text" lang="ar">${a.ar}</p><p class="tr-text">${esc(T[`${l.s}:${a.a}`] || '')}</p><p class="bg-text">${esc(a.tr)}</p></div>`).join('')}</div>
     ${recorder('Пуснете айет, повторете го, запишете се – и сравнете с рецитатора. Повтаряйте, докато звучи еднакво.')}
-    <div class="card note">Рецитатор: <b>${esc((store.get('reciter') || '').replace(/_/g, ' '))}</b> – сменя се в Настройки. Съветваме „Хусари – Муаллим“: чете бавно и повтаря, точно за учене.</div>`;
+    <div class="card note"${uiAttr()}>${t('Рецитатор')}: <b>${esc((store.get('reciter') || '').replace(/_/g, ' '))}</b> – ${t('сменя се в Настройки. Съветваме „Хусари – Муаллим“: чете бавно и повтаря, точно за учене.')}</div>`;
   },
   dua(l) {
     const cls = `${store.get('showTr') ? '' : 'hide-tr'} ${store.get('showBg') ? '' : 'hide-bg'}`;
@@ -107,7 +108,7 @@ const R = {
   ezan() {
     const E = DATA.ezan;
     return `<p class="p">${esc(E.intro)}</p>
-    <div class="ctrls"><button class="btn" data-audio="audio/ezan.mp3">${icon('play')} Чуй езана (2:34)</button><span class="muted" style="font-size:13px">Следете реда по-долу, докато слушате.</span></div>
+    <div class="ctrls"${uiAttr()}><button class="btn" data-audio="audio/ezan.mp3">${icon('play')} ${t('Чуй езана (2:34)')}</button><span class="muted" style="font-size:13px">${t('Следете реда по-долу, докато слушате.')}</span></div>
     <div class="card">${E.lines.map(x => `<div class="ezan-line ${x.only ? 'sabah' : ''}"><span class="x">×${x.times}</span><p class="ar-text" lang="ar">${x.ar}</p><p class="tr-text">${esc(x.tr)}</p><p class="bg-text">${esc(x.bg)}${x.only ? ' <span class="badge">само сабах</span>' : ''}</p><div class="reply"><b>Отговор:</b> ${esc(x.reply)}</div></div>`).join('')}</div>
     <h3 class="h">${esc(E.dua.name)}</h3><div class="card dua"><p class="ar-text" lang="ar">${E.dua.ar}</p><p class="tr-text">${esc(E.dua.tr)}</p><p class="bg-text">${esc(E.dua.bg)}</p></div>
     ${recorder('Кажете езана ред по ред, бавно, запишете се и се чуйте.')}`;
@@ -168,10 +169,10 @@ const R = {
 };
 
 function recorder(hint) {
-  return `<div class="card rec" data-rec><h3>${icon('mic')} Запишете се и се чуйте</h3><p>${esc(hint)} Записът остава само на вашето устройство.</p><button class="btn ghost" data-recbtn>${icon('mic')} Запиши</button><div data-recout></div></div>`;
+  return `<div class="card rec" data-rec><h3${uiAttr()}>${icon('mic')} ${t('Запишете се и се чуйте')}</h3><p>${esc(hint)} <span${uiAttr()}>${t('Записът остава само на вашето устройство.')}</span></p><button class="btn ghost" data-recbtn${uiAttr()}>${icon('mic')} ${t('Запиши')}</button><div data-recout></div></div>`;
 }
 
-export function renderLesson(l, m) { return (R[l.type] || (() => '<div class="empty">Този урок още се подготвя.</div>'))(l, m); }
+export function renderLesson(l, m) { return (R[l.type] || (() => `<div class="empty"${uiAttr()}>${t('Този урок още се подготвя.')}</div>`))(l, m); }
 
 // ---------- поведение ----------
 let cleanup = [];
@@ -201,7 +202,7 @@ function bindSurah(l, view) {
   const S = DATA.surahs[l.s]; const r = store.get('reciter');
   const items = S.ayahs.map(a => ({ url: ayahUrl(r, l.s, a.a), key: a.a }));
   let each = 3;
-  const setBtn = (playing) => { const b = view.querySelector('[data-playall]'); if (b) b.innerHTML = `${icon(playing ? 'pause' : 'play')} ${playing ? 'Пауза' : 'Пусни цялата'}`; };
+  const setBtn = (playing) => { const b = view.querySelector('[data-playall]'); if (b) b.innerHTML = `${icon(playing ? 'pause' : 'play')} ${t(playing ? 'Пауза' : 'Пусни цялата')}`; };
   const onState = () => {
     const cur = player.current;
     view.querySelectorAll('.ayah').forEach(el => el.classList.toggle('cur', !!cur && +el.dataset.a === cur.key));
@@ -209,13 +210,13 @@ function bindSurah(l, view) {
     setBtn(player.playing);
   };
   on(player, 'state', onState); on(player, 'end', onState);
-  on(player, 'fail', () => toast('Аудиото не се зареди – проверете интернет връзката.'));
+  on(player, 'fail', () => toast(t('Аудиото не се зареди – проверете интернет връзката.')));
   view.querySelectorAll('[data-play]').forEach(b => on(b, 'click', () => {
     const a = +b.dataset.play; const cur = player.current;
     if (cur && cur.key === a && player.queue.length === 1) player.toggle(); else player.playOne(items[a - 1]);
   }));
   on(view.querySelector('[data-playall]'), 'click', () => { if (player.queue.length === items.length && player.current) player.toggle(); else player.playList(items); });
-  on(view.querySelector('[data-learn]'), 'click', () => { player.playList(items, { each, loops: 2 }); toast(`Заучаване: всеки айет ×${each}, цялата ×2`); });
+  on(view.querySelector('[data-learn]'), 'click', () => { player.playList(items, { each, loops: 2 }); toast(t('Заучаване: всеки айет ×{each}, цялата ×{loops}', { each, loops: 2 })); });
   on($('#eachSeg'), 'click', e => { const b = e.target.closest('button'); if (!b) return; each = +b.dataset.each; $('#eachN').textContent = each; $('#eachSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); });
 }
 
@@ -229,9 +230,9 @@ function bindStepper(view) {
   };
   const show = () => {
     const s = steps[i];
-    box.innerHTML = `<div class="fig">${figureSvg(s.pos, 150)}</div><div class="pos">${POS_NAME[s.pos]} · стъпка ${i + 1} от ${steps.length}</div><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p>
+    box.innerHTML = `<div class="fig">${figureSvg(s.pos, 150)}</div><div class="pos">${POS_NAME[s.pos]} · <span${uiAttr()}>${t('стъпка {i} от {n}', { i: i + 1, n: steps.length })}</span></div><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p>
       <div class="reads">${s.read.map(readLink).join('')}</div>
-      <div class="nav"><button class="btn ghost" id="stPrev" ${i === 0 ? 'disabled' : ''}>${icon('chev-l')} Назад</button><div class="dots">${steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn" id="stNext" ${i === steps.length - 1 ? 'disabled' : ''}>Напред ${icon('chev-r')}</button></div>`;
+      <div class="nav"${uiAttr()}><button class="btn ghost" id="stPrev" ${i === 0 ? 'disabled' : ''}>${icon('chev-l')} ${t('Назад')}</button><div class="dots">${steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn" id="stNext" ${i === steps.length - 1 ? 'disabled' : ''}>${t('Напред')} ${icon('chev-r')}</button></div>`;
     $('#stPrev').onclick = () => { i--; show(); }; $('#stNext').onclick = () => { i++; show(); };
   };
   show();
@@ -251,8 +252,8 @@ function bindBuild(l, m, view) {
   const show = () => {
     if (r >= words.length) {
       markDone(m.id, l.id);
-      const db = $('#doneBtn'); if (db) { db.classList.add('done'); db.innerHTML = `${icon('check')} Завършен`; }
-      box.innerHTML = `<div class="result"><div class="muted">Сглобихте ${words.length} думи</div><b>${errs ? `${errs} ${errs === 1 ? 'грешка' : 'грешки'}` : 'без грешка'}</b><p>${errs ? 'Вижте пак точките на буквите, които ви объркаха.' : 'Отлично! Машаллах.'}</p><div class="acts" style="justify-content:center"><button class="btn" id="bAgain">Още веднъж</button></div></div>`;
+      const db = $('#doneBtn'); if (db) { db.classList.add('done'); db.innerHTML = `${icon('check')} ${t('Завършен')}`; }
+      box.innerHTML = `<div class="result"${uiAttr()}><div class="muted">${t('Сглобихте {n} думи', { n: words.length })}</div><b>${errs ? tn(errs, 'грешка', 'грешки') : t('без грешка')}</b><p>${errs ? t('Вижте пак точките на буквите, които ви объркаха.') : t('Отлично! Машаллах.')}</p><div class="acts" style="justify-content:center"><button class="btn" id="bAgain">${t('Още веднъж')}</button></div></div>`;
       $('#bAgain').onclick = start;
       return;
     }
@@ -261,7 +262,7 @@ function bindBuild(l, m, view) {
     if (decoys.length < 2) decoys.push(...shuffle(L.map(x => x.ar).filter(c => !chars.includes(c) && !decoys.includes(c))));
     const tiles = shuffle([...chars, ...decoys.slice(0, 2)]);
     let i = 0, miss = 0;
-    box.innerHTML = `<div class="prog">Дума ${r + 1} от ${words.length}</div>
+    box.innerHTML = `<div class="prog"${uiAttr()}>${t('Дума {i} от {n}', { i: r + 1, n: words.length })}</div>
       <div class="word"><div class="ar">${w.ar}</div><span>${esc(w.tr)} – ${esc(w.bg)}</span></div>
       <div class="slots" dir="rtl">${chars.map(() => '<span></span>').join('')}</div>
       <div class="tray" dir="rtl">${tiles.map((c, k) => `<button class="tile" data-k="${k}" lang="ar" aria-label="${esc(nameOf(c))}">${c}</button>`).join('')}</div>
@@ -273,7 +274,7 @@ function bindBuild(l, m, view) {
         errs++; miss++;
         b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
         fb.className = 'fb bad';
-        fb.textContent = `Това е ${nameOf(c)}. ` + (miss >= 2 ? `Подсказка: ${i ? 'следващата' : 'първата'} е ${nameOf(chars[i])}.` : `Търсете ${i ? 'следващата' : 'първата'} буква – вижте точките.`);
+        fb.textContent = t('Това е {x}.', { x: nameOf(c) }) + ' ' + (miss >= 2 ? t(i ? 'Подсказка: следващата е {x}.' : 'Подсказка: първата е {x}.', { x: nameOf(chars[i]) }) : t(i ? 'Търсете следващата буква – вижте точките.' : 'Търсете първата буква – вижте точките.'));
         return;
       }
       b.disabled = true; b.classList.add('used'); b.classList.remove('shake');
@@ -283,9 +284,9 @@ function bindBuild(l, m, view) {
       fb.className = 'fb'; fb.textContent = '';
       if (i < chars.length) return;
       box.querySelectorAll('.tile').forEach(t => t.disabled = true);
-      fb.className = 'fb ok'; fb.textContent = `✓ Браво! ${w.tr} – ${w.bg}`;
+      fb.className = 'fb ok'; fb.textContent = `✓ ${t('Браво!')} ${w.tr} – ${w.bg}`;
       const nb = document.createElement('button'); nb.className = 'btn'; nb.style.marginTop = '12px';
-      nb.innerHTML = `${r + 1 < words.length ? 'Следваща дума' : 'Резултат'} ${icon('chev-r')}`;
+      nb.innerHTML = `${t(r + 1 < words.length ? 'Следваща дума' : 'Резултат')} ${icon('chev-r')}`; if (uiAttr()) nb.lang = document.documentElement.lang;
       nb.onclick = () => { r++; show(); };
       box.appendChild(nb); nb.focus();
     });
@@ -295,14 +296,14 @@ function bindBuild(l, m, view) {
 
 function bindRecorder(box) {
   const rec = new Recorder(); const btn = box.querySelector('[data-recbtn]'); const out = box.querySelector('[data-recout]');
-  if (!rec.supported) { btn.disabled = true; btn.textContent = 'Записът не се поддържа в този браузър'; return; }
+  if (!rec.supported) { btn.disabled = true; btn.textContent = t('Записът не се поддържа в този браузър'); return; }
   let recording = false;
   on(btn, 'click', async () => {
     if (!recording) {
-      try { rec.start().catch(() => {}); recording = true; btn.classList.add('rec-on'); btn.innerHTML = `${icon('mic')} Спри записа`; player.stop(); }
-      catch (e) { toast('Нужно е разрешение за микрофона.'); }
+      try { rec.start().catch(() => {}); recording = true; btn.classList.add('rec-on'); btn.innerHTML = `${icon('mic')} ${t('Спри записа')}`; player.stop(); }
+      catch (e) { toast(t('Нужно е разрешение за микрофона.')); }
     } else {
-      recording = false; btn.classList.remove('rec-on'); btn.innerHTML = `${icon('mic')} Запиши отново`;
+      recording = false; btn.classList.remove('rec-on'); btn.innerHTML = `${icon('mic')} ${t('Запиши отново')}`;
       const url = await rec.stop(); if (url) out.innerHTML = `<audio controls src="${url}"></audio>`;
     }
   });

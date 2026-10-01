@@ -2,7 +2,8 @@
 //   og.jpg         – визитката 1200×630, която Viber, Facebook, WhatsApp и Telegram показват под линка
 //   qr.svg, qr.png – QR код към сайта (svg – в приложението и плаката; png – за изпращане като снимка)
 //   plakat-a4.pdf  – плакат A4 за джамии и учители
-// Пускане (Git Bash): NODE_PATH="$(npm root -g)" node tools/make-share.cjs
+// Пускане (Git Bash): NODE_PATH="$(npm root -g)" node tools/make-share.cjs [en]
+// С en: share/og-en.jpg, qr-en.*, plakat-a4-en.pdf и en/index.html – адресът …/en/ дава английска визитка и отваря сайта на английски.
 // Нужни глобално: npm i -g playwright qrcode. Браузър – Edge (вече е на компютъра).
 // Файлът е еднакъв в Муаллим и Куран-и Керим – различен е само APP по-долу.
 const fs = require('fs'), path = require('path');
@@ -21,6 +22,32 @@ const APP = {
     ['Изпити и напредък', 'по 10–15 минути на ден'],
   ],
   note: 'Уроците са по ханефи мезхеб, както се учи в България.',
+};
+
+const APP_EN = {
+  name: 'Muallim',
+  tagline: 'A Quran and prayer teacher –<br>step by step, from the first letter',
+  headline: 'Point your phone<br>and learn for free',
+  feats: [
+    ['The Arabic alphabet', 'every letter with audio and exercises'],
+    ['Surahs and duas for prayer', 'with audio, ayah by ayah'],
+    ['Wudu and salah', 'step by step, with pictures'],
+    ['Tests and progress', '10–15 minutes a day'],
+  ],
+  note: 'Hanafi madhhab. The lessons are in Bulgarian for now.',
+  title: 'Muallim – a Quran and prayer teacher',
+  description: 'Free: the Arabic alphabet with audio, the surahs and duas for prayer, wudu and salah – step by step. No ads.',
+};
+
+const L = process.argv.includes('en') ? 'en' : 'bg';
+const sfx = L === 'bg' ? '' : '-' + L;
+if (L !== 'bg') Object.assign(APP, APP_EN, { url: APP.url + L + '/' });
+const T = L === 'bg' ? {
+  free: 'Безплатно · без реклами', how: 'Отворете камерата на телефона и я насочете към кода.<br>Или напишете в браузъра:',
+  foot: 'Безплатно · без реклами · без регистрация · работи и без интернет', install: 'Може да се инсталира като приложение – бутонът „Инсталирай“ в сайта.',
+} : {
+  free: 'Free · no ads', how: 'Open your phone camera and point it at the code.<br>Or type in your browser:',
+  foot: 'Free · no ads · no sign-up · works offline', install: 'It can be installed as an app – the “Install” button on the site.',
 };
 
 const root = path.resolve(__dirname, '..');
@@ -53,7 +80,7 @@ p{font:500 33px/1.38 Manrope;opacity:.93}
 <svg class="star" viewBox="0 0 64 64">${STAR}</svg><svg class="star s2" viewBox="0 0 64 64">${STAR}</svg>
 <div class="icon">${ICON}</div>
 <div class="txt"><div class="ar">${APP.ar}</div><h1>${APP.name}</h1><hr><p>${APP.tagline}</p></div>
-<div class="url">Безплатно · без реклами · ${SHORT}</div>`;
+<div class="url">${T.free} · ${SHORT}</div>`;
 
 const posterHtml = qrSvg => `<!doctype html><meta charset="utf-8"><style>${FONTS}
 @page{size:A4;margin:0}
@@ -87,27 +114,33 @@ h1{font:700 16mm/1.05 Cormorant,serif;text-align:center;margin:10mm 0 7mm;color:
 <div class="top"><svg class="star" viewBox="0 0 64 64">${STAR}</svg><div class="icon">${ICON}</div><div><h2>${APP.name}</h2><div class="ar">${APP.ar}</div></div></div>
 <h1>${APP.headline}</h1>
 <div class="qr">${qrSvg}<i></i><i></i><i></i><i></i></div>
-<p class="how">Отворете камерата на телефона и я насочете към кода.<br>Или напишете в браузъра: <b>${SHORT}</b></p>
+<p class="how">${T.how} <b>${SHORT}</b></p>
 <ul class="feats">${APP.feats.map(([t, s]) => `<li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><div><b>${t}</b><small>${s}</small></div></li>`).join('')}</ul>
-<div class="foot"><b>Безплатно · без реклами · без регистрация · работи и без интернет</b><small>${APP.note}<br>Може да се инсталира като приложение – бутонът „Инсталирай“ в сайта.</small></div>`;
+<div class="foot"><b>${T.foot}</b><small>${APP.note}<br>${T.install}</small></div>`;
 
 (async () => {
   fs.mkdirSync(out, { recursive: true });
   const qrOpt = { errorCorrectionLevel: 'M', margin: 2, color: { dark: '#000000', light: '#ffffff' } };
   const qrSvg = await QR.toString(APP.url, { ...qrOpt, type: 'svg' });
-  fs.writeFileSync(path.join(out, 'qr.svg'), qrSvg);
-  await QR.toFile(path.join(out, 'qr.png'), APP.url, { ...qrOpt, width: 1024 });
+  fs.writeFileSync(path.join(out, `qr${sfx}.svg`), qrSvg);
+  await QR.toFile(path.join(out, `qr${sfx}.png`), APP.url, { ...qrOpt, width: 1024 });
 
   const browser = await chromium.launch({ channel: 'msedge' });
   const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
   await og.setContent(ogHtml); await og.evaluate(() => document.fonts.ready);
-  await og.screenshot({ path: path.join(out, 'og.jpg'), type: 'jpeg', quality: 88 });
+  await og.screenshot({ path: path.join(out, `og${sfx}.jpg`), type: 'jpeg', quality: 88 });
 
   const poster = await browser.newPage();
   await poster.setContent(posterHtml(qrSvg.replace(/<svg /, '<svg preserveAspectRatio="xMidYMid meet" '))); await poster.evaluate(() => document.fonts.ready);
-  await poster.pdf({ path: path.join(out, 'plakat-a4.pdf'), format: 'A4', printBackground: true, margin: { top: 0, right: 0, bottom: 0, left: 0 } });
+  await poster.pdf({ path: path.join(out, `plakat-a4${sfx}.pdf`), format: 'A4', printBackground: true, margin: { top: 0, right: 0, bottom: 0, left: 0 } });
   // снимка на плаката – за проверка с очи (не се качва)
   if (process.env.PREVIEW) { await poster.setViewportSize({ width: 794, height: 1123 }); await poster.screenshot({ path: process.env.PREVIEW }); }
   await browser.close();
-  for (const f of ['og.jpg', 'qr.svg', 'qr.png', 'plakat-a4.pdf']) console.log(f, Math.round(fs.statSync(path.join(out, f)).size / 1024) + ' KB');
+  for (const f of [`og${sfx}.jpg`, `qr${sfx}.svg`, `qr${sfx}.png`, `plakat-a4${sfx}.pdf`]) console.log(f, Math.round(fs.statSync(path.join(out, f)).size / 1024) + ' KB');
+  if (L !== 'bg') { // страница за споделяне: визитка на езика + пренасочване към ../?lang=en
+    const base = APP.url.slice(0, -(L.length + 1)), e = s => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    fs.mkdirSync(path.join(root, L), { recursive: true });
+    fs.writeFileSync(path.join(root, L, 'index.html'), `<!doctype html>\n<html lang="${L}">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>${e(APP.title)}</title>\n<meta name="description" content="${e(APP.description)}">\n<link rel="canonical" href="${APP.url}">\n<!-- направено от tools/make-share.cjs ${L}: визитката за групите на този език; човекът веднага отива в приложението -->\n<meta property="og:type" content="website">\n<meta property="og:site_name" content="${e(APP.name)}">\n<meta property="og:locale" content="en_US">\n<meta property="og:url" content="${APP.url}">\n<meta property="og:title" content="${e(APP.title)}">\n<meta property="og:description" content="${e(APP.description)}">\n<meta property="og:image" content="${base}share/og${sfx}.jpg">\n<meta property="og:image:type" content="image/jpeg">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="${e(APP.title)}">\n<meta name="twitter:card" content="summary_large_image">\n<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">\n<meta http-equiv="refresh" content="0; url=../?lang=${L}">\n<script>location.replace('../?lang=${L}' + location.hash);</script>\n</head>\n<body><p><a href="../?lang=${L}">${e(APP.name)}</a></p></body>\n</html>\n`);
+    console.log(`${L}/index.html`);
+  }
 })().catch(e => { console.error(e); process.exit(1); });
