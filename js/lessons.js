@@ -1,9 +1,9 @@
 // Изобразяване на всеки вид урок + поведение (аудио, запис, стъпки)
 import { DATA, esc, icon, $, player, toast, lessonHref } from './app.js';
-import { store } from './store.js';
+import { store, markDone } from './store.js';
 import { ayahUrl, Recorder } from './audio.js';
 import { figureSvg, POS_NAME } from './figure.js';
-import { renderQuiz, bindQuiz } from './quiz.js';
+import { renderQuiz, bindQuiz, shuffle } from './quiz.js';
 
 // Как звучи всяка буква с български букви (за срички и тестове)
 export const CYR = { alif: '', ba: 'б', ta: 'т', tha: 'с', jim: 'дж', hha: 'х', kha: 'х', dal: 'д', dhal: 'з', ra: 'р', zay: 'з', sin: 'с', shin: 'ш', sad: 'с', dad: 'д', tta: 'т', zza: 'з', ayn: '’', ghayn: 'г', fa: 'ф', qaf: 'к', kaf: 'к', lam: 'л', mim: 'м', nun: 'н', ha: 'х', waw: 'в', ya: 'й' };
@@ -162,6 +162,9 @@ const R = {
     <h3 class="h">Съвети за начинаещи</h3><ul class="list good">${N.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`;
   },
   quiz() { return renderQuiz(); },
+  build() {
+    return `<p class="p muted">Буквите в думата се свързват и променят формата си. Докоснете буквите подред – от <b>първата</b> (най-дясната) до последната. Внимавайте за точките: ب ت ث ن си приличат.</p><div class="card quiz build" id="build"></div>`;
+  },
 };
 
 function recorder(hint) {
@@ -188,6 +191,7 @@ export function bindLesson(l, m, view) {
   // сура – аудио
   if (l.type === 'surah') bindSurah(l, view);
   if (l.type === 'steps2') bindStepper(view);
+  if (l.type === 'build') bindBuild(l, m, view);
   // запис
   const rec = view.querySelector('[data-rec]');
   if (rec) bindRecorder(rec);
@@ -232,6 +236,61 @@ function bindStepper(view) {
   };
   show();
   on(document, 'keydown', e => { if (e.key === 'ArrowRight' && i < steps.length - 1) { i++; show(); } if (e.key === 'ArrowLeft' && i > 0) { i--; show(); } });
+}
+
+// „Сглоби думата“: думите-примери на буквите, разбити на букви. Подвеждащите букви се различават от верните само по точките.
+const HARAKAT = /[ـً-ٰٟ]/g;
+const TWINS = ['بتثني', 'جحخ', 'دذ', 'رز', 'سش', 'صض', 'طظ', 'عغ', 'فق', 'هة', 'اأآ', 'يى'];
+const ALIFS = { 'أ': 'ا', 'إ': 'ا', 'آ': 'ا' };
+function bindBuild(l, m, view) {
+  const L = DATA.letters.letters, box = $('#build'), ROUNDS = 8;
+  const letterOf = c => L.find(x => x.ar === (ALIFS[c] || c));
+  const nameOf = c => ({ 'أ': 'Елиф с хемзе', 'إ': 'Елиф с хемзе', 'آ': 'Елиф с медд' }[c] || (letterOf(c) || DATA.letters.extra.find(x => x.ar === c) || { name: c }).name);
+  let words, r, errs;
+  const start = () => { words = shuffle(L.map(x => x.example)).slice(0, ROUNDS); r = 0; errs = 0; show(); };
+  const show = () => {
+    if (r >= words.length) {
+      markDone(m.id, l.id);
+      const db = $('#doneBtn'); if (db) { db.classList.add('done'); db.innerHTML = `${icon('check')} Завършен`; }
+      box.innerHTML = `<div class="result"><div class="muted">Сглобихте ${words.length} думи</div><b>${errs ? `${errs} ${errs === 1 ? 'грешка' : 'грешки'}` : 'без грешка'}</b><p>${errs ? 'Вижте пак точките на буквите, които ви объркаха.' : 'Отлично! Машаллах.'}</p><div class="acts" style="justify-content:center"><button class="btn" id="bAgain">Още веднъж</button></div></div>`;
+      $('#bAgain').onclick = start;
+      return;
+    }
+    const w = words[r], chars = [...w.ar.replace(HARAKAT, '')];
+    const decoys = shuffle([...new Set(chars.flatMap(c => [...(TWINS.find(g => g.includes(c)) || '')]))].filter(c => !chars.includes(c)));
+    if (decoys.length < 2) decoys.push(...shuffle(L.map(x => x.ar).filter(c => !chars.includes(c) && !decoys.includes(c))));
+    const tiles = shuffle([...chars, ...decoys.slice(0, 2)]);
+    let i = 0, miss = 0;
+    box.innerHTML = `<div class="prog">Дума ${r + 1} от ${words.length}</div>
+      <div class="word"><div class="ar">${w.ar}</div><span>${esc(w.tr)} – ${esc(w.bg)}</span></div>
+      <div class="slots" dir="rtl">${chars.map(() => '<span></span>').join('')}</div>
+      <div class="tray" dir="rtl">${tiles.map((c, k) => `<button class="tile" data-k="${k}" lang="ar" aria-label="${esc(nameOf(c))}">${c}</button>`).join('')}</div>
+      <p class="fb" aria-live="polite"></p>`;
+    const fb = box.querySelector('.fb');
+    box.querySelectorAll('.tile').forEach(b => b.onclick = () => {
+      const c = tiles[+b.dataset.k];
+      if (c !== chars[i]) {
+        errs++; miss++;
+        b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+        fb.className = 'fb bad';
+        fb.textContent = `Това е ${nameOf(c)}. ` + (miss >= 2 ? `Подсказка: ${i ? 'следващата' : 'първата'} е ${nameOf(chars[i])}.` : `Търсете ${i ? 'следващата' : 'първата'} буква – вижте точките.`);
+        return;
+      }
+      b.disabled = true; b.classList.add('used'); b.classList.remove('shake');
+      const slot = box.querySelectorAll('.slots span')[i]; slot.textContent = c; slot.classList.add('ok');
+      const le = letterOf(c); if (le) player.playOne({ url: `audio/letters/${le.id}.mp3`, key: le.id });
+      i++; miss = 0;
+      fb.className = 'fb'; fb.textContent = '';
+      if (i < chars.length) return;
+      box.querySelectorAll('.tile').forEach(t => t.disabled = true);
+      fb.className = 'fb ok'; fb.textContent = `✓ Браво! ${w.tr} – ${w.bg}`;
+      const nb = document.createElement('button'); nb.className = 'btn'; nb.style.marginTop = '12px';
+      nb.innerHTML = `${r + 1 < words.length ? 'Следваща дума' : 'Резултат'} ${icon('chev-r')}`;
+      nb.onclick = () => { r++; show(); };
+      box.appendChild(nb); nb.focus();
+    });
+  };
+  start();
 }
 
 function bindRecorder(box) {

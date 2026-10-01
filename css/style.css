@@ -290,6 +290,19 @@ h3.h { font: 700 19px/1.25 var(--serif); margin: 18px 0 8px; }
 .quiz .fb.bad { color: var(--bad); font-weight: 700; }
 .quiz .prog { font-size: 12.5px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
 .result { text-align: center; padding: 26px 18px; }
+/* „Сглоби думата“ */
+.build .word { text-align: center; margin: 4px 0 10px; color: var(--muted); font-weight: 600; }
+.build .word .ar { display: block; font-size: 60px; line-height: 1.6; color: var(--accent); }
+.slots { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.slots span { width: 50px; height: 58px; border-radius: 12px; border: 2px dashed var(--line); display: grid; place-items: center; font: 32px/1 'Hafs', serif; }
+.slots span.ok { border-style: solid; border-color: var(--ok); background: var(--ok-soft); }
+.tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; }
+.tile { height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); font: 34px/1 'Hafs', serif; transition: opacity .2s, border-color .15s; }
+.tile:hover:not(:disabled) { border-color: var(--gold); }
+.tile.used { opacity: .25; }
+.tile:disabled { cursor: default; }
+.tile.shake { border-color: var(--bad); background: var(--bad-soft); animation: shake .35s; }
+@keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
 .result b { display: block; font: 700 46px/1 var(--serif); color: var(--accent); margin: 6px 0; }
 
 /* настройки */

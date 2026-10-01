@@ -9,6 +9,7 @@
         { "id": "l4", "type": "letters", "title": "Букви 22–28: от Кяф до Йе", "letters": ["kaf", "lam", "mim", "nun", "ha", "waw", "ya"] },
         { "id": "extra", "type": "extra", "title": "Допълнителни знаци: хемзе, те марбута, лям-елиф" },
         { "id": "forms", "type": "forms", "title": "Как буквите се свързват в дума" },
+        { "id": "build", "type": "build", "title": "Упражнение: сглоби думата" },
         { "id": "quiz", "type": "quiz", "kind": "letters", "title": "Изпит: познавам ли буквите?" }
       ]
     },

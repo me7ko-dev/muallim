@@ -3,7 +3,7 @@ import { DATA, esc, icon, $ } from './app.js';
 import { saveScore } from './store.js';
 import { CYR, THICK } from './lessons.js';
 
-const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+export const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pick = (arr, n, not) => shuffle(arr.filter(x => x !== not)).slice(0, n);
 const mk = (q, correct, wrong, explain = '', fmt = x => x) => { const opts = shuffle([correct, ...wrong]); return { q, opts: opts.map(fmt), ans: opts.indexOf(correct), explain }; };
 
