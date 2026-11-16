@@ -23,7 +23,7 @@ node tools/serve.mjs
 Статичен сайт без build: всяка промяна се вижда при презареждане. `git push` в `main` → GitHub Pages се обновява за около минута.
 
 ## Устройство
-- `index.html`, `css/style.css` – каркас и стилове (шрифтовете са в `fonts/`, без Google Fonts).
+- `index.html`, `css/style.css` – каркас и стилове (шрифтовете са в `fonts/`, без Google Fonts). Цветовете и размерите са променливи в началото на `style.css` (светла, сепия, тъмна тема); орнаментът – осемлъчата звезда (`--girih`, `--star`).
 - `js/app.js` – рутер (`#/`, `#/kurs`, `#/m/<модул>`, `#/l/<модул>/<урок>`, `#/settings`), начало, модул, настройки.
 - `js/lessons.js` – изобразяване на всеки вид урок; `js/quiz.js` – изпитите; `js/audio.js` – аудио от EveryAyah + запис от микрофона; `js/figure.js` – фигурата за намаз; `js/store.js` – напредък в localStorage.
 - `data/course.json` – учебната програма (модули → уроци). Останалите `data/*.json` – съдържанието (букви, сури, транслитерация, дуи, езан, абдест, намаз).
@@ -35,6 +35,8 @@ node tools/serve.mjs
 ```
 node tools/smoke.mjs http://localhost:8932/                  # всички екрани без грешки (сървърът да е пуснат)
 NODE_PATH="$(npm root -g)" node tools/test-pwa.cjs            # „Инсталирай“ и „Сподели“ на телефон и компютър (Playwright)
+NODE_PATH="$(npm root -g)" node tools/test-ux.cjs             # урок, изпит, звук, запис, тема, без интернет, без localStorage (Playwright)
+NODE_PATH="$(npm root -g)" node tools/shots.cjs <папка>        # снимки на главните екрани: компютър/телефон, светла/тъмна тема
 NODE_PATH="$(npm root -g)" node tools/make-share.cjs          # прави наново share/og.jpg, qr.svg, qr.png, plakat-a4.pdf
 ```
 (`NODE_PATH=...` е за Git Bash; нужни са `npm i -g playwright qrcode`.)
