@@ -19,8 +19,9 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Муаллим – учител по Коран и намаз, на български">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0c2a23" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f7f1e3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a1310" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f1f2ec" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="light dark">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -29,6 +30,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preload" href="fonts/UthmanicHafs.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/cormorant-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="modulepreload" href="js/app.js">
 <link rel="stylesheet" href="css/style.css">
 <script>
   // тема преди първото рисуване, за да няма премигване
@@ -38,6 +41,7 @@
 </script>
 </head>
 <body>
+<a class="skip" href="#view">Към съдържанието</a>
 <div class="app">
   <aside class="rail" aria-label="Навигация">
     <a class="brand" href="#/">
@@ -45,6 +49,7 @@
       <span><b>Муаллим</b><small>مُعَلِّم</small></span>
     </a>
     <nav class="rail-nav" id="railNav"></nav>
+    <div class="rail-foot" id="railFoot"></div>
   </aside>
   <main id="view" tabindex="-1"></main>
   <nav class="tabbar" id="tabbar" aria-label="Раздели"></nav>

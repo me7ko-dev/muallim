@@ -1,7 +1,7 @@
 // Изобразяване на всеки вид урок + поведение (аудио, запис, стъпки)
 import { DATA, esc, icon, $, player, toast, lessonHref } from './app.js';
 import { store, markDone } from './store.js';
-import { ayahUrl, Recorder } from './audio.js';
+import { ayahUrl, Recorder, RECITERS } from './audio.js';
 import { figureSvg, POS_NAME } from './figure.js';
 import { renderQuiz, bindQuiz, shuffle } from './quiz.js';
 
@@ -19,11 +19,11 @@ const R = {
   letters(l) {
     return `<p class="p muted">Разгледайте всяка буква: как изглежда сама и в думата, откъде излиза звукът, пример. Чуйте я, повторете на глас и се запишете накрая.</p>
     <div class="ctrls"><button class="btn" data-seq>${icon('play')} Чуй всички букви подред</button></div>
-    <div class="letters">${l.letters.map(id => letterById(id)).map(x => `<div class="card letter">
-      <div><div class="big" lang="ar">${x.ar}</div><button class="btn ghost btn-sm" data-audio="audio/letters/${x.id}.mp3" style="width:100%;margin-top:8px;height:40px;padding:0 8px">${icon('play')} Чуй</button></div>
+    <div class="letters">${l.letters.map(id => letterById(id)).map(x => `<div class="card letter" data-letter="${x.id}">
+      <div><div class="big" lang="ar">${x.ar}</div><button class="btn ghost sm play" data-audio="audio/letters/${x.id}.mp3" aria-label="Чуй буквата ${esc(x.name)}">${icon('play')} Чуй</button></div>
       <div><h3>${esc(x.name)} <span class="badge">${esc(x.group)}</span></h3><div class="snd">Звук: ${esc(x.sound)}</div><p>${esc(x.makhraj)}</p>
         <div class="forms">${x.forms.map((f, i) => `<span lang="ar">${f}<small>${FORM_NAMES[i]}</small></span>`).join('')}</div>
-        ${x.join ? '' : '<p class="muted" style="font-size:13px">Тази буква не се свързва със следващата (само с предишната).</p>'}
+        ${x.join ? '' : '<p class="muted" style="font-size:13.5px">Тази буква не се свързва със следващата (само с предишната).</p>'}
         <div class="ex">${ar(x.example.ar)}<div><b>${esc(x.example.tr)}</b><br><small>${esc(x.example.bg)}</small></div></div>
       </div></div>`).join('')}</div>${recorder('Прочетете имената и звуковете на буквите на глас, запишете се и се чуйте.')}`;
   },
@@ -34,12 +34,12 @@ const R = {
     const words = [['بِسْمِ', 'ب ِ س ْ م ِ', 'бисми – „в името“'], ['كِتَاب', 'ك ِ ت َ ا ب', 'китааб – „книга“'], ['مُحَمَّد', 'م ُ ح َ م ّ َ د', 'Мухаммед'], ['سَلَام', 'س َ ل َ ا م', 'селяям – „мир“'], ['قُرْآن', 'ق ُ ر ْ آ ن', 'Кур’аан'], ['اَللّٰه', 'ا ل ل ّ ٰ ه', 'Аллах']];
     return `<p class="p">Арабски се пише <b>отдясно наляво</b>. Повечето букви се хващат за съседните си и променят формата си: в началото, в средата и в края на думата. Шест букви (<span class="ar">ا د ذ ر ز و</span>) се свързват само с предишната буква – след тях винаги има „прекъсване“.</p>
     <div class="sub">Примери: отделните букви → думата</div>
-    <div class="letters">${words.map(([w, parts, bg]) => `<div class="card demo" style="text-align:center"><div class="ar" style="font-size:34px;color:var(--muted)">${parts}</div><div class="muted">↓</div><div class="ar" style="font-size:64px">${w}</div><b style="font-size:18px">${esc(bg)}</b></div>`).join('')}</div>
+    <div class="letters">${words.map(([w, parts, bg]) => `<div class="card demo word-demo"><div class="ar parts">${parts}</div><div class="arrow" aria-hidden="true">↓</div><div class="ar whole">${w}</div><b style="font-size:18px">${esc(bg)}</b></div>`).join('')}</div>
     <div class="card note"><b>Съвет:</b> запомнете „скелета“ на буквата – точките и извивката. Формата в средата е обикновено само скелетът с точките, без „опашката“.</div>`;
   },
   haraka(l) {
     const v = l.id;
-    return `<div class="card demo"><div class="ar" id="demoAr">ب${l.mark}</div><b id="demoTr">б${vowelOf('ba', v)}</b></div>
+    return `<div class="card demo" aria-live="polite"><div class="ar" id="demoAr" lang="ar">ب${l.mark}</div><b id="demoTr">б${vowelOf('ba', v)}</b></div>
     <p class="p">${esc(l.desc)}</p>
     <div class="sub">Всички букви с ${esc(l.title.split(' –')[0].toLowerCase())} – докоснете, за да ги видите големи</div>
     <div class="syl">${DATA.letters.letters.map(x => `<button data-syl="${x.ar}${l.mark}" data-tr="${x.id === 'alif' ? vowelOf('alif', v) : CYR[x.id] + vowelOf(x.id, v)}"><span class="ar" lang="ar">${x.id === 'alif' ? 'أ' : x.ar}${l.mark}</span><small>${x.id === 'alif' ? vowelOf('alif', v) : CYR[x.id] + vowelOf(x.id, v)}</small></button>`).join('')}</div>
@@ -88,16 +88,14 @@ const R = {
     const S = DATA.surahs[l.s]; const T = DATA.translit;
     const cls = `${store.get('showTr') ? '' : 'hide-tr'} ${store.get('showBg') ? '' : 'hide-bg'}`;
     return `<div class="card surah-head"><div class="ar" lang="ar">${S.ar}</div><h2>${esc(S.name)}</h2><p>${esc(S.mean)} · ${S.ayahs.length} ${S.ayahs.length === 1 ? 'айет' : 'айета'}</p></div>
-    <div class="ctrls">
-      <button class="btn" data-playall>${icon('play')} Пусни цялата</button>
-      <button class="btn gold" data-learn>${icon('play')} Заучаване</button>
-      <span class="muted" style="font-size:13px">Заучаване: всеки айет ×<b id="eachN">3</b>, цялата ×<b id="loopN">2</b></span>
-      <div class="seg" id="eachSeg">${[1, 3, 5].map(n => `<button data-each="${n}" class="${n === 3 ? 'on' : ''}">×${n}</button>`).join('')}</div>
+    <div class="card player-bar">
+      <div class="row"><button class="btn" data-playall>${icon('play')} Пусни цялата</button><button class="btn gold" data-learn>${icon('repeat')} Заучаване</button></div>
+      <div class="opt-row"><span id="lbl-each">При заучаване всеки айет звучи</span><div class="seg" id="eachSeg" role="group" aria-labelledby="lbl-each">${[1, 3, 5].map(n => `<button data-each="${n}" class="${n === 3 ? 'on' : ''}" aria-pressed="${n === 3}">×${n}</button>`).join('')}</div><span>а цялата сура – 2 пъти.</span></div>
     </div>
     <div class="ayahs ${cls}">${S.ayahs.map(a => `<div class="ayah" data-a="${a.a}"><div class="ayah-top"><span class="ayah-key">${l.s}:${a.a}</span><button class="ib" data-play="${a.a}" aria-label="Пусни айет ${a.a}">${icon('play')}</button></div>
       <p class="ar-text" lang="ar">${a.ar}</p><p class="tr-text">${esc(T[`${l.s}:${a.a}`] || '')}</p><p class="bg-text">${esc(a.tr)}</p></div>`).join('')}</div>
     ${recorder('Пуснете айет, повторете го, запишете се – и сравнете с рецитатора. Повтаряйте, докато звучи еднакво.')}
-    <div class="card note">Рецитатор: <b>${esc((store.get('reciter') || '').replace(/_/g, ' '))}</b> – сменя се в Настройки. Съветваме „Хусари – Муаллим“: чете бавно и повтаря, точно за учене.</div>`;
+    <div class="card note">Рецитатор: <b>${esc((RECITERS.find(r => r.id === store.get('reciter')) || { name: (store.get('reciter') || '').replace(/_/g, ' ') }).name)}</b> – сменя се в <a href="#/settings">Настройки</a>. Съветваме „Хусари – Муаллим“: чете бавно и повтаря, точно за учене.</div>`;
   },
   dua(l) {
     const cls = `${store.get('showTr') ? '' : 'hide-tr'} ${store.get('showBg') ? '' : 'hide-bg'}`;
@@ -107,7 +105,7 @@ const R = {
   ezan() {
     const E = DATA.ezan;
     return `<p class="p">${esc(E.intro)}</p>
-    <div class="ctrls"><button class="btn" data-audio="audio/ezan.mp3">${icon('play')} Чуй езана (2:34)</button><span class="muted" style="font-size:13px">Следете реда по-долу, докато слушате.</span></div>
+    <div class="ctrls"><button class="btn" data-audio="audio/ezan.mp3">${icon('play')} Чуй езана (2:34)</button><span class="muted" style="font-size:14px">Следете реда по-долу, докато слушате.</span></div>
     <div class="card">${E.lines.map(x => `<div class="ezan-line ${x.only ? 'sabah' : ''}"><span class="x">×${x.times}</span><p class="ar-text" lang="ar">${x.ar}</p><p class="tr-text">${esc(x.tr)}</p><p class="bg-text">${esc(x.bg)}${x.only ? ' <span class="badge">само сабах</span>' : ''}</p><div class="reply"><b>Отговор:</b> ${esc(x.reply)}</div></div>`).join('')}</div>
     <h3 class="h">${esc(E.dua.name)}</h3><div class="card dua"><p class="ar-text" lang="ar">${E.dua.ar}</p><p class="tr-text">${esc(E.dua.tr)}</p><p class="bg-text">${esc(E.dua.bg)}</p></div>
     ${recorder('Кажете езана ред по ред, бавно, запишете се и се чуйте.')}`;
@@ -168,7 +166,7 @@ const R = {
 };
 
 function recorder(hint) {
-  return `<div class="card rec" data-rec><h3>${icon('mic')} Запишете се и се чуйте</h3><p>${esc(hint)} Записът остава само на вашето устройство.</p><button class="btn ghost" data-recbtn>${icon('mic')} Запиши</button><div data-recout></div></div>`;
+  return `<div class="card rec" data-rec><h3>${icon('mic')} Запишете се и се чуйте</h3><p>${esc(hint)} Записът остава само на вашето устройство.</p><button class="btn ghost" data-recbtn>${icon('mic')} Запиши</button><div data-recout aria-live="polite"></div></div>`;
 }
 
 export function renderLesson(l, m) { return (R[l.type] || (() => '<div class="empty">Този урок още се подготвя.</div>'))(l, m); }
@@ -179,15 +177,30 @@ const on = (el, ev, f) => { el.addEventListener(ev, f); cleanup.push(() => el.re
 export function unbindLesson() { cleanup.forEach(f => f()); cleanup = []; }
 
 export function bindLesson(l, m, view) {
-  if (l.type === 'quiz') { bindQuiz(l, m); return; }
+  if (l.type === 'quiz') { bindQuiz(l, m, on); return; }
   // срички – показват се големи в демото
   view.querySelectorAll('[data-syl]').forEach(b => on(b, 'click', () => {
-    const d = $('#demoAr'); if (d) { d.textContent = b.dataset.syl; $('#demoTr').textContent = b.dataset.tr; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    view.querySelectorAll('[data-syl].on').forEach(x => x.classList.remove('on')); b.classList.add('on');
+    const d = $('#demoAr'); if (d) { d.textContent = b.dataset.syl; $('#demoTr').textContent = b.dataset.tr; d.closest('.demo').scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }
     else toast(b.dataset.tr);
   }));
   // букви – всички подред
   const seq = view.querySelector('[data-seq]');
-  if (seq && l.letters) on(seq, 'click', () => player.playList(l.letters.map(id => ({ url: `audio/letters/${id}.mp3`, key: id })), { each: 2 }));
+  if (seq && l.letters) {
+    const isSeq = () => player.queue.length > 1 && player.i >= 0;
+    on(seq, 'click', () => { if (isSeq()) player.stop(); else player.playList(l.letters.map(id => ({ url: `audio/letters/${id}.mp3`, key: id })), { each: 2 }); });
+    // буквата, която звучи, свети; бутонът става „Спри“
+    const sync = () => {
+      const s = isSeq(), cur = s && player.current ? player.current.key : null;
+      seq.innerHTML = `${icon(s ? 'stop' : 'play')} ${s ? 'Спри' : 'Чуй всички букви подред'}`;
+      view.querySelectorAll('[data-letter]').forEach(el => {
+        const was = el.classList.contains('cur'), now = el.dataset.letter === cur;
+        el.classList.toggle('cur', now);
+        if (now && !was) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      });
+    };
+    on(player, 'state', sync); on(player, 'end', sync);
+  }
   // сура – аудио
   if (l.type === 'surah') bindSurah(l, view);
   if (l.type === 'steps2') bindStepper(view);
@@ -204,19 +217,22 @@ function bindSurah(l, view) {
   const setBtn = (playing) => { const b = view.querySelector('[data-playall]'); if (b) b.innerHTML = `${icon(playing ? 'pause' : 'play')} ${playing ? 'Пауза' : 'Пусни цялата'}`; };
   const onState = () => {
     const cur = player.current;
-    view.querySelectorAll('.ayah').forEach(el => el.classList.toggle('cur', !!cur && +el.dataset.a === cur.key));
-    view.querySelectorAll('[data-play]').forEach(b => b.innerHTML = icon(cur && +b.dataset.play === cur.key && player.playing ? 'pause' : 'play'));
+    view.querySelectorAll('.ayah').forEach(el => {
+      const now = !!cur && +el.dataset.a === cur.key, was = el.classList.contains('cur');
+      el.classList.toggle('cur', now);
+      if (now && !was && player.queue.length > 1) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+    view.querySelectorAll('[data-play]').forEach(b => { const p = cur && +b.dataset.play === cur.key && player.playing; b.innerHTML = icon(p ? 'pause' : 'play'); b.setAttribute('aria-pressed', !!p); });
     setBtn(player.playing);
   };
   on(player, 'state', onState); on(player, 'end', onState);
-  on(player, 'fail', () => toast('Аудиото не се зареди – проверете интернет връзката.'));
   view.querySelectorAll('[data-play]').forEach(b => on(b, 'click', () => {
     const a = +b.dataset.play; const cur = player.current;
     if (cur && cur.key === a && player.queue.length === 1) player.toggle(); else player.playOne(items[a - 1]);
   }));
   on(view.querySelector('[data-playall]'), 'click', () => { if (player.queue.length === items.length && player.current) player.toggle(); else player.playList(items); });
   on(view.querySelector('[data-learn]'), 'click', () => { player.playList(items, { each, loops: 2 }); toast(`Заучаване: всеки айет ×${each}, цялата ×2`); });
-  on($('#eachSeg'), 'click', e => { const b = e.target.closest('button'); if (!b) return; each = +b.dataset.each; $('#eachN').textContent = each; $('#eachSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); });
+  on($('#eachSeg'), 'click', e => { const b = e.target.closest('button'); if (!b) return; each = +b.dataset.each; $('#eachSeg').querySelectorAll('button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); }); });
 }
 
 function bindStepper(view) {
@@ -229,13 +245,13 @@ function bindStepper(view) {
   };
   const show = () => {
     const s = steps[i];
-    box.innerHTML = `<div class="fig">${figureSvg(s.pos, 150)}</div><div class="pos">${POS_NAME[s.pos]} · стъпка ${i + 1} от ${steps.length}</div><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p>
-      <div class="reads">${s.read.map(readLink).join('')}</div>
+    box.innerHTML = `<div class="st-body" aria-live="polite"><div class="fig">${figureSvg(s.pos, 150)}</div><div class="pos">${POS_NAME[s.pos]} – стъпка ${i + 1} от ${steps.length}</div><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p>
+      <div class="reads">${s.read.map(readLink).join('')}</div></div>
       <div class="nav"><button class="btn ghost" id="stPrev" ${i === 0 ? 'disabled' : ''}>${icon('chev-l')} Назад</button><div class="dots">${steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div><button class="btn" id="stNext" ${i === steps.length - 1 ? 'disabled' : ''}>Напред ${icon('chev-r')}</button></div>`;
-    $('#stPrev').onclick = () => { i--; show(); }; $('#stNext').onclick = () => { i++; show(); };
+    $('#stPrev').onclick = () => { i--; show(); ($('#stPrev').disabled ? $('#stNext') : $('#stPrev')).focus(); }; $('#stNext').onclick = () => { i++; show(); ($('#stNext').disabled ? $('#stPrev') : $('#stNext')).focus(); };
   };
   show();
-  on(document, 'keydown', e => { if (e.key === 'ArrowRight' && i < steps.length - 1) { i++; show(); } if (e.key === 'ArrowLeft' && i > 0) { i--; show(); } });
+  on(document, 'keydown', e => { if (e.target.closest && e.target.closest('input, select, textarea')) return; if (e.key === 'ArrowRight' && i < steps.length - 1) { i++; show(); } if (e.key === 'ArrowLeft' && i > 0) { i--; show(); } });
 }
 
 // „Сглоби думата“: думите-примери на буквите, разбити на букви. Подвеждащите букви се различават от верните само по точките.
@@ -252,7 +268,7 @@ function bindBuild(l, m, view) {
     if (r >= words.length) {
       markDone(m.id, l.id);
       const db = $('#doneBtn'); if (db) { db.classList.add('done'); db.innerHTML = `${icon('check')} Завършен`; }
-      box.innerHTML = `<div class="result"><div class="muted">Сглобихте ${words.length} думи</div><b>${errs ? `${errs} ${errs === 1 ? 'грешка' : 'грешки'}` : 'без грешка'}</b><p>${errs ? 'Вижте пак точките на буквите, които ви объркаха.' : 'Отлично! Машаллах.'}</p><div class="acts" style="justify-content:center"><button class="btn" id="bAgain">Още веднъж</button></div></div>`;
+      box.innerHTML = `<div class="result"><span class="star gold" aria-hidden="true">${icon('check')}</span><h3>Сглобихте ${words.length} думи</h3><p>${errs ? `${errs} ${errs === 1 ? 'грешка' : 'грешки'} по пътя. Вижте пак точките на буквите, които ви объркаха.` : 'Без нито една грешка. Отлично! Машаллах.'}</p><div class="acts"><button class="btn" id="bAgain">${icon('repeat')} Още веднъж</button></div></div>`;
       $('#bAgain').onclick = start;
       return;
     }
@@ -284,7 +300,7 @@ function bindBuild(l, m, view) {
       if (i < chars.length) return;
       box.querySelectorAll('.tile').forEach(t => t.disabled = true);
       fb.className = 'fb ok'; fb.textContent = `✓ Браво! ${w.tr} – ${w.bg}`;
-      const nb = document.createElement('button'); nb.className = 'btn'; nb.style.marginTop = '12px';
+      const nb = document.createElement('button'); nb.className = 'btn nextq';
       nb.innerHTML = `${r + 1 < words.length ? 'Следваща дума' : 'Резултат'} ${icon('chev-r')}`;
       nb.onclick = () => { r++; show(); };
       box.appendChild(nb); nb.focus();
@@ -296,14 +312,24 @@ function bindBuild(l, m, view) {
 function bindRecorder(box) {
   const rec = new Recorder(); const btn = box.querySelector('[data-recbtn]'); const out = box.querySelector('[data-recout]');
   if (!rec.supported) { btn.disabled = true; btn.textContent = 'Записът не се поддържа в този браузър'; return; }
-  let recording = false;
+  let st = 'idle'; // idle | busy | rec
+  cleanup.push(() => rec.cancel()); // при излизане от урока микрофонът се изключва
   on(btn, 'click', async () => {
-    if (!recording) {
-      try { rec.start().catch(() => {}); recording = true; btn.classList.add('rec-on'); btn.innerHTML = `${icon('mic')} Спри записа`; player.stop(); }
-      catch (e) { toast('Нужно е разрешение за микрофона.'); }
+    if (st === 'busy') return;
+    if (st === 'idle') {
+      st = 'busy'; player.stop();
+      try {
+        await rec.start(); st = 'rec';
+        btn.classList.add('rec-on'); btn.innerHTML = `${icon('mic')} Спри записа`;
+      } catch (e) {
+        st = 'idle';
+        toast(e && e.name === 'NotAllowedError' ? 'Разрешете микрофона за този сайт и опитайте пак.' : 'Микрофонът не е достъпен.');
+      }
     } else {
-      recording = false; btn.classList.remove('rec-on'); btn.innerHTML = `${icon('mic')} Запиши отново`;
-      const url = await rec.stop(); if (url) out.innerHTML = `<audio controls src="${url}"></audio>`;
+      st = 'busy';
+      const url = await rec.stop(); st = 'idle';
+      btn.classList.remove('rec-on'); btn.innerHTML = `${icon('mic')} Запиши отново`;
+      if (url) out.innerHTML = `<audio controls src="${url}"></audio>`;
     }
   });
 }

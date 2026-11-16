@@ -39,11 +39,15 @@ export function saveScore(m, l, ok, total) {
 }
 export const scoreOf = (m, l) => state.scores[lessonKey(m, l)];
 
-// Дни подред с учене
+// Дни подред с учене – по местното време (не UTC: иначе урок след полунощ в България се брои за вчера)
+const day = (offset = 0) => { const d = new Date(); d.setDate(d.getDate() + offset); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 function touchStreak() {
-  const today = new Date().toISOString().slice(0, 10);
-  const s = state.streak;
+  const today = day(), s = state.streak || { days: 0, last: '' };
   if (s.last === today) return;
-  const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-  store.set('streak', { days: s.last === y ? s.days + 1 : 1, last: today });
+  store.set('streak', { days: s.last === day(-1) ? s.days + 1 : 1, last: today });
+}
+// Колко дни подред има в момента: ако последният ден е преди вчера, серията е прекъсната
+export function streakNow() {
+  const s = state.streak || { days: 0, last: '' };
+  return s.last === day() || s.last === day(-1) ? s.days : 0;
 }

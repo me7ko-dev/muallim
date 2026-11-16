@@ -1,5 +1,5 @@
 // Генерира изпити от данните и ги показва един въпрос след друг
-import { DATA, esc, icon, $ } from './app.js';
+import { DATA, esc, icon, $, ring, nextLesson, lessonHref } from './app.js';
 import { saveScore } from './store.js';
 import { CYR, THICK } from './lessons.js';
 
@@ -67,29 +67,41 @@ const GEN = {
 };
 
 export function renderQuiz() { return `<div class="card quiz" id="quiz"></div>`; }
-export function bindQuiz(l, m) {
-  const qs = GEN[l.kind](); let i = 0, ok = 0;
+export function bindQuiz(l, m, on) {
+  const qs = GEN[l.kind](); let i = 0, ok = 0; const marks = [];
   const box = $('#quiz');
   const show = () => {
     if (i >= qs.length) {
       saveScore(m.id, l.id, ok, qs.length);
-      const pct = Math.round(ok / qs.length * 100);
-      box.innerHTML = `<div class="result"><div class="muted">Резултат</div><b>${ok} / ${qs.length}</b><p>${pct >= 90 ? 'Отлично! Машаллах.' : pct >= 70 ? 'Много добре – урокът е отбелязан като научен.' : 'Прегледайте уроците още веднъж и опитайте пак.'}</p><div class="acts" style="justify-content:center"><button class="btn" id="again">Още веднъж</button><a class="btn ghost" href="#/m/${m.id}">Към модула</a></div></div>`;
-      $('#again').onclick = () => { i = 0; ok = 0; qs.splice(0, qs.length, ...GEN[l.kind]()); show(); };
+      const pct = Math.round(ok / qs.length * 100), pass = pct >= 70, nxt = pass && nextLesson(m.id, l.id);
+      box.innerHTML = `<div class="result">${ring(pct, 120, `${ok} / ${qs.length}`, pass ? 'pass' : '')}<h3>${pct >= 90 ? 'Отлично! Машаллах.' : pass ? 'Много добре!' : 'Още малко упражнение'}</h3><p>${pass ? 'Урокът е отбелязан като научен.' : 'За да мине изпитът, трябват поне 70% верни отговора. Прегледайте уроците още веднъж и опитайте пак.'}</p><div class="acts">${nxt ? `<a class="btn" href="${lessonHref(nxt.m, nxt.l)}">${nxt.newModule ? 'Към следващия модул' : 'Следващ урок'} ${icon('chev-r')}</a>` : ''}<button class="btn ${nxt ? 'ghost' : ''}" id="again">${icon('repeat')} Още веднъж</button><a class="btn ghost" href="#/m/${m.id}">Към модула</a></div></div>`;
+      $('#again').onclick = () => { i = 0; ok = 0; marks.length = 0; qs.splice(0, qs.length, ...GEN[l.kind]()); show(); };
+      box.querySelector('.result .btn').focus();
       return;
     }
     const q = qs[i];
-    box.innerHTML = `<div class="prog">Въпрос ${i + 1} от ${qs.length}</div><p class="q">${q.q}</p><div class="opts">${q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><p class="fb"></p>`;
+    const arOpts = q.opts.every(o => o.startsWith('<span class="ar">'));
+    box.innerHTML = `<div class="qbar" aria-hidden="true">${qs.map((_, k) => `<i class="${marks[k] || (k === i ? 'cur' : '')}"></i>`).join('')}</div>
+      <div class="prog">Въпрос ${i + 1} от ${qs.length}</div><p class="q">${q.q}</p>
+      <div class="opts ${arOpts ? 'ar-opts' : ''}">${q.opts.map((o, k) => `<button class="opt" data-k="${k}"><span class="k" aria-hidden="true">${k + 1}</span>${o}</button>`).join('')}</div><p class="fb" aria-live="polite"></p>`;
     // „чуй и познай“ – звукът тръгва сам (докосването на „Следващ“ го позволява)
     const au = box.querySelector('.q [data-audio]'); if (au) setTimeout(() => au.isConnected && au.click(), 300);
     box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
       const k = +b.dataset.k; const right = k === q.ans;
       if (right) ok++;
+      marks[i] = right ? 'ok' : 'bad';
+      const bar = box.querySelectorAll('.qbar i')[i]; if (bar) bar.className = marks[i];
       box.querySelectorAll('.opt').forEach((x, j) => { x.disabled = true; if (j === q.ans) x.classList.add('ok'); else if (j === k) x.classList.add('bad'); });
       const fb = box.querySelector('.fb'); fb.className = 'fb ' + (right ? 'ok' : 'bad'); fb.innerHTML = (right ? '✓ Вярно! ' : '✕ Не съвсем. ') + esc(q.explain || '');
-      const nb = document.createElement('button'); nb.className = 'btn'; nb.style.marginTop = '12px'; nb.innerHTML = `${i + 1 < qs.length ? 'Следващ' : 'Резултат'} ${icon('chev-r')}`; nb.onclick = () => { i++; show(); };
-      box.appendChild(nb); nb.focus();
+      const nb = document.createElement('button'); nb.className = 'btn nextq'; nb.innerHTML = `${i + 1 < qs.length ? 'Следващ въпрос' : 'Виж резултата'} ${icon('chev-r')}`; nb.onclick = () => { i++; show(); };
+      box.appendChild(nb); nb.focus({ preventScroll: true });
+      nb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
   };
+  // от клавиатурата: 1–4 избира отговор
+  if (on) on(document, 'keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey || !/^[1-4]$/.test(e.key)) return;
+    const b = box.querySelectorAll('.opt')[+e.key - 1]; if (b && !b.disabled) { e.preventDefault(); b.click(); }
+  });
   show();
 }

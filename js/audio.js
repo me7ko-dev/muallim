@@ -44,7 +44,7 @@ export class Player extends EventTarget {
     this.emit();
   }
   advance() {
-    if (this.rep < this.each) { this.rep++; this.el.currentTime = 0; this.el.play(); this.emit(); return; }
+    if (this.rep < this.each) { this.rep++; this.el.currentTime = 0; this.el.play().catch(() => this.emit()); this.emit(); return; }
     this.rep = 1;
     if (this.i < this.queue.length - 1) { this.i++; this.load(); return; }
     if (!this.loops || this.loop < this.loops) { this.loop++; this.i = 0; this.load(); return; }
@@ -55,23 +55,32 @@ export class Player extends EventTarget {
   setRate(r) { this.rate = r; this.el.playbackRate = r; }
 }
 
-// Запис от микрофона: детето/ученикът се записва и се слуша (нищо не се изпраща никъде)
+// Запис от микрофона: ученикът се записва и се слуша (нищо не се изпраща никъде)
 export class Recorder {
-  constructor() { this.chunks = []; this.rec = null; this.url = null; }
-  get supported() { return !!(navigator.mediaDevices && window.MediaRecorder); }
+  constructor() { this.chunks = []; this.rec = null; this.url = null; this.stream = null; }
+  get supported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); }
+  // чака разрешението за микрофона; при отказ хвърля грешка (NotAllowedError)
   async start() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.chunks = [];
-    this.rec = new MediaRecorder(stream);
-    this.rec.ondataavailable = e => this.chunks.push(e.data);
+    this.rec = new MediaRecorder(this.stream);
+    this.rec.ondataavailable = e => { if (e.data && e.data.size) this.chunks.push(e.data); };
     this.rec.start();
-    return new Promise(res => { this.rec.onstop = () => { stream.getTracks().forEach(t => t.stop()); res(); }; });
   }
+  // спира и връща адрес за слушане на записа
   stop() {
-    if (!this.rec || this.rec.state === 'inactive') return null;
-    this.rec.stop();
-    if (this.url) URL.revokeObjectURL(this.url);
-    // blob е готов след 'stop' – изчакваме кратко
-    return new Promise(res => setTimeout(() => { this.url = URL.createObjectURL(new Blob(this.chunks, { type: this.rec.mimeType || 'audio/webm' })); res(this.url); }, 150));
+    return new Promise(res => {
+      if (!this.rec || this.rec.state === 'inactive') { this.release(); return res(null); }
+      this.rec.onstop = () => {
+        this.release();
+        if (this.url) URL.revokeObjectURL(this.url);
+        this.url = URL.createObjectURL(new Blob(this.chunks, { type: this.rec.mimeType || 'audio/webm' }));
+        res(this.url);
+      };
+      this.rec.stop();
+    });
   }
+  // при излизане от урока – микрофонът се изключва
+  cancel() { try { if (this.rec && this.rec.state !== 'inactive') { this.rec.onstop = null; this.rec.stop(); } } catch (e) {} this.release(); }
+  release() { if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; } }
 }
