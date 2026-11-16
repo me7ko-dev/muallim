@@ -74,7 +74,7 @@ export function bindQuiz(l, m, on) {
     if (i >= qs.length) {
       saveScore(m.id, l.id, ok, qs.length);
       const pct = Math.round(ok / qs.length * 100), pass = pct >= 70, nxt = pass && nextLesson(m.id, l.id);
-      box.innerHTML = `<div class="result">${ring(pct, 120, `${ok} / ${qs.length}`, pass ? 'pass' : '')}<h3>${pct >= 90 ? 'Отлично! Машаллах.' : pass ? 'Много добре!' : 'Още малко упражнение'}</h3><p>${pass ? 'Урокът е отбелязан като научен.' : 'За да мине изпитът, трябват поне 70% верни отговора. Прегледайте уроците още веднъж и опитайте пак.'}</p><div class="acts">${nxt ? `<a class="btn" href="${lessonHref(nxt.m, nxt.l)}">${nxt.newModule ? 'Към следващия модул' : 'Следващ урок'} ${icon('chev-r')}</a>` : ''}<button class="btn ${nxt ? 'ghost' : ''}" id="again">${icon('repeat')} Още веднъж</button><a class="btn ghost" href="#/m/${m.id}">Към модула</a></div></div>`;
+      box.innerHTML = `<div class="result">${ring(pct, 120, `${ok} / ${qs.length}`, pass ? 'pass' : '')}<h2>${pct >= 90 ? 'Отлично! Машаллах.' : pass ? 'Много добре!' : 'Още малко упражнение'}</h2><p>${pass ? 'Урокът е отбелязан като научен.' : 'За да мине изпитът, трябват поне 70% верни отговора. Прегледайте уроците още веднъж и опитайте пак.'}</p><div class="acts">${nxt ? `<a class="btn" href="${lessonHref(nxt.m, nxt.l)}">${nxt.newModule ? 'Към следващия модул' : 'Следващ урок'} ${icon('chev-r')}</a>` : ''}<button class="btn ${nxt ? 'ghost' : ''}" id="again">${icon('repeat')} Още веднъж</button><a class="btn ghost" href="#/m/${m.id}">Към модула</a></div></div>`;
       $('#again').onclick = () => { i = 0; ok = 0; marks.length = 0; qs.splice(0, qs.length, ...GEN[l.kind]()); show(); };
       box.querySelector('.result .btn').focus();
       return;

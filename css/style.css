@@ -155,7 +155,7 @@ main { padding: 0 16px calc(var(--tab) + 28px); max-width: 880px; margin: 0 auto
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 .sub { font-size: 14px; font-weight: 700; color: var(--muted); margin: 26px 0 10px; }
 h2.h { font: 700 27px/1.15 var(--serif); margin: 30px 0 12px; }
-h3.h { font: 700 21px/1.2 var(--serif); margin: 24px 0 10px; }
+h3.h, .lesson h2.h { font: 700 23px/1.2 var(--serif); margin: 26px 0 10px; }
 .p { margin: 0 0 14px; line-height: 1.65; max-width: 68ch; }
 .lead { font-size: 16.5px; color: var(--muted); margin: 4px 0 18px; line-height: 1.6; max-width: 64ch; }
 .note { font-size: 14px; color: var(--muted); line-height: 1.6; padding: 16px 18px; margin: 16px 0; border-radius: var(--r-md); box-shadow: none; background: var(--surface-2); }
@@ -289,8 +289,8 @@ h3.h { font: 700 21px/1.2 var(--serif); margin: 24px 0 10px; }
 .letter.cur { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow-2); }
 .letter .big { font: 400 64px/1.25 'Hafs', serif; text-align: center; color: var(--accent); background: var(--surface-2); border-radius: var(--r-md); padding: 10px 4px; direction: rtl; border: 1px solid var(--line); }
 .letter .play { width: 100%; margin-top: 8px; }
-.letter h3 { margin: 0; font: 700 23px/1.2 var(--serif); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.letter h3 .badge { font-family: var(--ui); }
+.letter h2 { margin: 0; font: 700 23px/1.2 var(--serif); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.letter h2 .badge { font-family: var(--ui); }
 .letter .snd { color: var(--gold-ink); font-weight: 700; font-size: 14.5px; margin-top: 2px; }
 .letter p { margin: 8px 0 0; font-size: 15px; line-height: 1.6; }
 .forms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
@@ -341,11 +341,11 @@ select, .ctrls select { min-height: 44px; border-radius: var(--r-sm); border: 1p
 .ayah.cur .ayah-top .ib { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .ar-text { font-family: 'Hafs', serif; font-size: var(--ar); line-height: 2.05; direction: rtl; text-align: right; margin: 0; }
 .tr-text { font-size: 17px; font-weight: 650; color: var(--gold-ink); margin: 8px 0 0; line-height: 1.55; }
-.bg-text { font-size: 15.5px; color: var(--text); opacity: .86; margin: 6px 0 0; line-height: 1.6; }
+.bg-text { font-size: 15.5px; color: color-mix(in srgb, var(--text) 86%, var(--surface)); margin: 6px 0 0; line-height: 1.6; }
 .hide-tr .tr-text, .hide-bg .bg-text { display: none; }
 .rec { padding: 18px; margin-top: 22px; display: grid; gap: 4px; }
-.rec h3 { margin: 0; font: 700 21px/1.2 var(--serif); display: flex; align-items: center; gap: 8px; }
-.rec h3 .ic { color: var(--gold); }
+.rec h2 { margin: 0; font: 700 21px/1.2 var(--serif); display: flex; align-items: center; gap: 8px; }
+.rec h2 .ic { color: var(--gold); }
 .rec p { margin: 0 0 10px; font-size: 14.5px; color: var(--muted); line-height: 1.55; }
 .rec .btn { justify-self: start; }
 .rec .btn.rec-on { background: var(--bad); color: #fff; border-color: var(--bad); }
@@ -355,7 +355,7 @@ select, .ctrls select { min-height: 44px; border-radius: var(--r-sm); border: 1p
 
 /* дуа */
 .dua { padding: 18px; margin-bottom: 14px; }
-.dua h3 { margin: 0 0 2px; font: 700 23px/1.2 var(--serif); }
+.dua h2 { margin: 0 0 2px; font: 700 23px/1.2 var(--serif); }
 .dua .when { font-size: 14px; color: var(--muted); margin: 0 0 10px; line-height: 1.5; }
 .dua .ar-text { font-size: calc(var(--ar) * .85); line-height: 2.05; }
 .dua .note { padding: 11px 14px; margin: 12px 0 0; }
@@ -387,7 +387,7 @@ select, .ctrls select { min-height: 44px; border-radius: var(--r-sm); border: 1p
 .figure .fg.foot { stroke-width: 4; }
 .figure .fg.eye { stroke: var(--gold); stroke-width: 3; }
 .stepper .pos { font-size: 13px; font-weight: 700; color: var(--gold-ink); }
-.stepper h3 { font: 700 25px/1.2 var(--serif); margin: 4px 0 8px; }
+.stepper h2 { font: 700 25px/1.2 var(--serif); margin: 4px 0 8px; }
 .stepper p { margin: 0 auto; max-width: 52ch; font-size: 15.5px; line-height: 1.65; text-align: left; }
 .stepper .reads { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 14px 0 6px; }
 .stepper .nav { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-top: 18px; }
@@ -398,7 +398,7 @@ select, .ctrls select { min-height: 44px; border-radius: var(--r-sm); border: 1p
 @media (max-width: 420px) { .stepper .nav .btn { padding: 0 14px; } .stepper .dots { display: none; } }
 .prayer { padding: 16px 18px; margin-bottom: 12px; }
 .prayer .top { display: flex; align-items: baseline; gap: 10px; }
-.prayer h3 { margin: 0; font: 700 23px var(--serif); flex: 1; }
+.prayer h2 { margin: 0; font: 700 23px var(--serif); flex: 1; }
 .prayer .top .ar { font-size: 26px; color: var(--gold-ink); }
 .prayer .tm { font-size: 14px; color: var(--muted); margin: 2px 0 12px; }
 .rak { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -441,7 +441,7 @@ select, .ctrls select { min-height: 44px; border-radius: var(--r-sm); border: 1p
 .result .ring circle { stroke-width: 8; }
 .result .ring b { font: 700 32px/1 var(--serif); }
 .result .ring.pass .val { stroke: var(--gold); }
-.result h3 { font: 700 26px/1.2 var(--serif); margin: 0 0 6px; }
+.result h2 { font: 700 26px/1.2 var(--serif); margin: 0 0 6px; }
 .result p { margin: 0 auto; color: var(--muted); max-width: 42ch; }
 .result .acts { justify-content: center; margin-top: 18px; }
 /* „Сглоби думата“ */

@@ -15,5 +15,9 @@
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
   ],
-  "categories": ["education", "books", "lifestyle"]
+  "categories": ["education", "books", "lifestyle"],
+  "shortcuts": [
+    { "name": "Уроци", "short_name": "Уроци", "url": "./#/kurs", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Намаз", "short_name": "Намаз", "url": "./#/m/namaz", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
 }
