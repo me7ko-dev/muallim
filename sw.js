@@ -1,5 +1,5 @@
 // Service worker: приложението се отваря и без интернет. Кодът – първо от мрежата (за обновления), шрифтовете – от кеша.
-const SHELL = 'mu-shell-v6';
+const SHELL = 'mu-shell-v7';
 const DATA = 'mu-data-v2';
 const SHELL_FILES = ['./', 'index.html', 'css/style.css', 'js/app.js', 'js/store.js', 'js/audio.js', 'js/lessons.js', 'js/quiz.js', 'js/figure.js', 'js/pwa.js',
   'data/course.json', 'data/letters.json', 'data/surahs.json', 'data/translit.json', 'data/dualar.json', 'data/ezan.json', 'data/abdest.json', 'data/namaz.json',
